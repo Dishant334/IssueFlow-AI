@@ -2,7 +2,7 @@ import Workspace from "../models/Workspace.js";
 
 
 
-// : POST /api/addworkspaces
+// : POST /api/workspace
 const addWorkspace=async(req,res)=>{
     try{
    const {name}=req.body;
@@ -24,15 +24,63 @@ const addWorkspace=async(req,res)=>{
 }}
 
 
-//:GET /api/getworkspaces
-const getWorkspaces=async (req,res)=>{
-    try{
-        const {userId}=req.user
-      const workspaces= await Workspace.find({userId})
+// GET /api/workspaces
+const getWorkspaces = async (req, res) => {
+  try {
+    const { userId } = req.user;
 
-      res.status(200).json(workspaces)
-    }catch(err){
-      res.status(500).json("Internal error occured")
+    // find all workspaces where user is a member
+    const workspaces = await Workspace.find({   //return a array
+      "members.user": userId
+    }).select("name members");
+
+    // return only what frontend needs
+    const result = workspaces.map((workspace) => {   
+      const myMembership = workspace.members.find(    //from members find role 
+        (m) => m.user.toString() === userId
+      );
+      
+
+      return {
+        id: workspace._id,
+        name: workspace.name,
+        role: myMembership.role
+      };
+    });
+
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ message: "Internal error occurred" });
+  }
+};
+
+export { addWorkspace, getWorkspaces };
+
+
+// GET /api/workspace/:workspaceid
+const getSingleWorkspace= async(req,res)=>{
+  try{
+    const {userId}=req.user
+    const {workspaceid}= req.params;
+     
+    const reqworkspace=await Workspace.findById(workspaceid)
+    
+      if(!reqworkspace) return res.status(404).json({message:"404 Not Found"})
+    const reqdetails=()=>{
+        const myMembership = reqworkspace.members.find(    //from members find role 
+        (m) => m.user.toString() === userId
+      );
+      if(!myMembership) return res.status(403).json({message:"Not a member"})
+      return{  
+          id: reqworkspace._id,
+        name: reqworkspace.name,
+        role: myMembership.role
+      }
     }
+     res.status(200).json(reqdetails()) 
+  }catch(err){
+   res.status(500).json({ message: "Internal error occurred" });
+  }
 }
 
+export { addWorkspace, getWorkspaces, getSingleWorkspace};
