@@ -54,8 +54,6 @@ const getWorkspaces = async (req, res) => {
   }
 };
 
-export { addWorkspace, getWorkspaces };
-
 
 // GET /api/workspace/:workspaceid
 const getSingleWorkspace= async(req,res)=>{
