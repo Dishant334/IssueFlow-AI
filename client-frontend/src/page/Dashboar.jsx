@@ -3,6 +3,7 @@ import Navbar from '../components/Dashboard/Navbar'
 import { Link, Outlet } from 'react-router-dom'
 import {CirclePlus, FolderKanban, House, StickyNote, User} from 'lucide-react'
 import Workspace from '../components/Dashboard/Workspace'
+import CreateWorkspace from '../components/Dashboard/CreateWorkspace'
 
 
 
@@ -23,7 +24,7 @@ const activeState="text-center border-y border-indigo-500  px-4 py-1  text-white
         {/*Workspace*/}
         <div className='text-white mb-8 px-4'>
           
-            <p className='text-sm text-gray-500'><div className='flex justify-between px-2'>Workspaces <button><CirclePlus size={12}/></button></div></p>
+            <CreateWorkspace/>
             <Workspace/>
             </div>  
         {/*buttons*/}
