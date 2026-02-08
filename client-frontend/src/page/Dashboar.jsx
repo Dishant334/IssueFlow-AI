@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Dashboard/Navbar'
 import { Link, Outlet } from 'react-router-dom'
 import {CirclePlus, FolderKanban, House, StickyNote, User} from 'lucide-react'
 import Workspace from '../components/Dashboard/Workspace'
-import { addWorkspace } from '../apiHelper/workspace'
+import { addWorkspace, getWorkspaces } from '../apiHelper/workspace'
 import toast from 'react-hot-toast'
 
 
@@ -12,7 +12,8 @@ const Dashboar = () => {
   const [title,setTitle]=useState('')
   const [active,setActive]=useState("home")
   const [openForm,setOpenForm]=useState(false)
-
+  const [workspaces,setWorkspaces]=useState([])
+  const [reload,setReload]=useState(false)
   {/*handling functionsfor new workspace form */}
   const handleNewWorkspaceInput=(e)=>{
     setTitle(e.target.value)
@@ -20,9 +21,12 @@ const Dashboar = () => {
  const handleNewWorkspaceSubmit = async (e) => {
   e.preventDefault();
   try {
-    const data = await addWorkspace(title.trim());
+    
+    await addWorkspace(title.trim());
     toast.success("New Workspace Added Successfully");
     console.log("Submitting workspace:", title.trim());
+    await allWorkspaces();
+    setReload(true)
     setTitle('');
     setOpenForm(false);
   } catch (err) {
@@ -33,6 +37,19 @@ const Dashboar = () => {
 
 const inactiveState=" text-center  text-indigo-400  tracking-wider border-y border-indigo-500  px-4 py-1 transition-all duration-300  hover:text-white  hover:shadow-[0_0_25px_8px_rgba(99,102,241,0.8)]"
 const activeState="text-center border-y border-indigo-500  px-4 py-1  text-white  transition-all duration-300"
+
+const allWorkspaces=async()=>{
+  try{
+     const response=await getWorkspaces()
+     setWorkspaces(response)
+  }catch(err){
+    err.message?.response
+  }
+}
+
+useEffect(() =>{allWorkspaces()},[reload])
+
+
   return (
     <div className='flex gap-4'>
       {/*left sidebar*/}
@@ -44,7 +61,7 @@ const activeState="text-center border-y border-indigo-500  px-4 py-1  text-white
         {/*Workspace*/}
         <div className='text-white mb-8 px-4'>
              <div className='flex justify-between px-2'><p className='text-sm text-gray-500'>Workspaces</p> <button onClick={()=>setOpenForm(true)} className='transform transition-transform duration-300 hover:scale-125'><CirclePlus size={12}/></button></div>
-            <Workspace/>
+            <Workspace workspaces={workspaces}/>
             </div>  
         {/*buttons*/}
           <div className='flex flex-col gap-6'>
