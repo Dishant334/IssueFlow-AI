@@ -11,6 +11,7 @@ import DashboardAllProject from './components/Dashboard/DashboardAllProject.jsx'
 import DashboardMembers from './components/Dashboard/DashboardMembers.jsx'
 import DashboardMyTasks from './components/Dashboard/DashboardMyTasks.jsx'
 import ProtectedRoute from './protectFrontend/ProtectedRoute.jsx'
+import CreateWorkspace from './components/CreateWorkspace/CreateWorkspace.jsx'
 
 function App() {
 
@@ -32,7 +33,8 @@ function App() {
        <Route path='projects' element={<DashboardAllProject/>}/>
        <Route path='members' element={<DashboardMembers/>}/>
      </Route>
-     </Route>    
+     </Route>
+     <Route path='/createWorkspace' element={<CreateWorkspace/>}/>    
     </Routes>
     </>
   )
