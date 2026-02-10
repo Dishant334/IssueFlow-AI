@@ -25,7 +25,7 @@ function App() {
 
      {/*Protected Route*/}
      <Route element={<ProtectedRoute/>}>
-     <Route path='/dashboard' element={<Dashboar/>}>
+     <Route path='/workspace/:workspaceid' element={<Dashboar/>}>
        <Route default element={<DashboardHome/>}/>
        <Route path='home' element={<DashboardHome/>} />
        <Route path='tasks' element={<DashboardMyTasks/>}/>
