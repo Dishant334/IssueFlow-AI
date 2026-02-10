@@ -2,6 +2,7 @@ import api from '../../configs/api'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {toast} from 'react-hot-toast'
+import { getWorkspaces } from '../apiHelper/workspace'
 
 const Login = () => {
   
@@ -11,19 +12,42 @@ const navigate=useNavigate()
         email:'',
         password:''
     })
-      const handleSubmit=(e)=>{
-      e.preventDefault()
-      console.log(login)
-      api.post('/api/users/login',login)
-      .then((res)=>{
-      toast.success('Login Successful')
-      setLogin({...login,email:'',password:''})
-      localStorage.setItem("token",res.data.token)
-      navigate('/dashboard')
-      }).catch((err)=>{
-        toast.error(err.response?.message)
-      })
+    const workspaces=async()=>{
+       try{
+        const response = await  getWorkspaces()
+        return response
+      }catch(err){
+        throw err.response?.data || err;
+      }
     }
+    
+    const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    // 1️⃣ Login first
+    const res = await api.post('/api/users/login', login);
+
+    toast.success('Login Successful');
+    setLogin({ email: '', password: '' });
+    localStorage.setItem("token", res.data.token);
+
+    // 2️⃣ NOW fetch workspaces (token exists)
+    const workspaceData = await workspaces();
+
+    // 3️⃣ Navigate based on data
+    if (workspaceData.length === 0) {
+      navigate('/createWorkspace');
+    } else {
+      navigate(`/workspace/${workspaceData[0].id}`);
+    }
+
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Login failed');
+  }
+};
+ 
+
     const handleInput=(e)=>{
         setLogin({
        ...login,[e.target.name]:e.target.value
