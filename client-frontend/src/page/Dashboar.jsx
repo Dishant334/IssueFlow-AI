@@ -64,11 +64,12 @@ useEffect(() =>{allWorkspaces()},[reload])
             <Workspace workspaces={workspaces}/>
             </div>  
         {/*buttons*/}
-          <div className='flex flex-col gap-6'>
+          <div className='flex flex-col gap-3'>
             <Link onClick={()=>{setActive('home')}} className={active==='home' ? `${activeState}`:`${inactiveState}`}to="home"><div  className="flex items-center gap-2"><House size={18}/> Home</div></Link>
             <Link onClick={()=>{setActive("tasks")}} className={active==='tasks'? `${activeState}`:`${inactiveState}`}to="tasks"><div  className="flex items-center gap-2"><StickyNote  size={18}/> My Tasks</div></Link>
             <Link onClick={()=>{setActive("projects")}} className={active==='projects'?`${activeState}`:`${inactiveState}`} to="projects"><div  className="flex items-center gap-2"><FolderKanban  size={18}/> My Projects</div></Link>
             <Link onClick={()=>{setActive("members")}} className={active==='members'? `${activeState}`:`${inactiveState}`} to="members"><div  className="flex items-center gap-2"><User  size={18}/> Members</div></Link>
+           <Link onClick={()=>{setActive("settings")}} className={active==='settings'? `${activeState}`:`${inactiveState}`} to="settings"><div  className="flex items-center gap-2"><User  size={18}/> Settings</div></Link>
           </div>
        </div>
       {/*right content*/}
