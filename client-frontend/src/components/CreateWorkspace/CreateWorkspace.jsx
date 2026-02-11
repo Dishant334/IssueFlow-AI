@@ -46,7 +46,6 @@ const CreateWorkspace = () => {
     <button type="Submit" className='bg-blue-800 cursor-pointer px-4 py-2 rounded-lg hover:py-3'>Create Now!</button>
 </form>
      </div>
-
     </div>
 
   )
