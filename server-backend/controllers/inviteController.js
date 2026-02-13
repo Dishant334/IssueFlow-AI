@@ -36,7 +36,7 @@ import User from "../models/User";
 
       if (user) {
        const alreadyMember = workspace.members.find(
-        (m) => m.user.toString() === user._id.toString()
+        (m) => m.user.userId.toString() === user._id.toString()
           );
 
       if (alreadyMember) {
@@ -140,4 +140,181 @@ const hashedToken = crypto
    }    
  }
 
- export {invite,accept}
+ // GET /api/workspace/:workspaceid/members
+const allmembers = async(req,res)=>{
+  try{
+  const {workspaceid}= req.params
+  const {userId}=req.user 
+  const fullWorkspace=await Workspace.findById(workspaceid).populate("members.user","name email")
+  /**{
+  "_id": "workspace123",
+  "name": "Dev Team",
+  "members": [
+    {
+      "user": "65abc123",   // ObjectId
+      "role": "admin",
+      "joinedAt": "2026-02-01"
+    },
+    {
+      "user": "65def456",
+      "role": "member",
+      "joinedAt": "2026-02-03"
+    }
+  ]
+}
+  this is returned */
+  if(!fullWorkspace){
+    return res.status(404).json({message: "workspace not available"})
+  }
+
+  const isMember = fullWorkspace.members.some(
+   m => m.user._id.toString() === userId
+);
+
+if (!isMember) {   //checking if the person trying to access is also a member of this workspace either other people will access it
+
+   return res.status(403).json({ message: "Access denied" });
+}
+
+  return res.status(200).json({
+   members: fullWorkspace.members.map(m => ({
+      userId: m.user._id,
+      name: m.user.name,
+      email: m.user.email,
+      role: m.role,
+      joinedAt: m.joinedAt
+   }))
+});
+  }
+  catch(err){
+    return res.status(500).json({message:"Something went wrong"})
+  }
+  
+ }
+  // GET /api/workspace/:workspaceid/invites
+ const PendingInvite = async (req,res)=>{
+  try{
+  
+  const {workspaceid}=req.params
+  
+  const invites=await Invitation.find({workspaceId : workspaceid,status:"pending"})
+  
+
+  return res.status(200).json({invites})
+}catch(err){res.status(500).json({message:"Something went wrong"})}
+ } 
+
+
+
+ //Delete /api/workspace/:workspaceid/member/:memberId
+ const removeMember = async (req, res) => {
+   try {
+      const { memberId } = req.params;
+      const workspace = req.workspace; // attached by middleware
+
+      // Find target member
+      const targetMember = workspace.members.find(
+         m => m.user.toString() === memberId
+      );
+
+      if (!targetMember) {
+         return res.status(404).json({
+            message: "Member not found in workspace"
+         });
+      }
+
+      //  Count total admins
+      const adminCount = workspace.members.filter(
+         m => m.role === "admin"
+      ).length;
+
+      //  Prevent removing last admin
+      if (targetMember.role === "admin" && adminCount === 1) {
+         return res.status(400).json({
+            message: "Cannot remove the last admin"
+         });
+      }
+
+      //  Remove member
+      workspace.members = workspace.members.filter(
+         m => m.user.toString() !== memberId
+      );
+
+      await workspace.save();
+
+      return res.status(200).json({
+         message: "Member removed successfully"
+      });
+
+   } catch (err) {
+      return res.status(500).json({
+         message: "Something went wrong"
+      });
+   }
+};
+
+
+// PATCH /api/workspace/:workspaceid/member/:memberId/promote
+const promoteMember=async(req,res)=>{
+  try{
+   const {memberId}=req.params
+   const workspace=req.workspace
+   if(!workspace) return res.status(404).json({message:"No workspace selected"})
+
+     const targetMember = workspace.members.find(
+         m => m.user.toString() === memberId
+      );
+
+      if(!targetMember) return res.status(404).json({message:"Member does not exist"})
+      if(targetMember.role==='admin') return res.status(200).json({message:"Already a admin"})  
+
+     targetMember.role="admin"
+  
+    await workspace.save()
+     return res.status(200).json({message:"Promote Successful"})
+    }catch(err){
+      res.status(500).json({message:"Something Went Wrong"})
+    }
+}
+// DELETE /api/workspace/:workspaceId/invite/:inviteId
+const cancelInvite = async (req, res) => {
+   try {
+      const { inviteId } = req.params;
+      const workspace = req.workspace; // attached by middleware
+
+      //  Find invite belonging to this workspace
+      const invite = await Invitation.findOne({
+         _id: inviteId,
+         workspaceId: workspace._id
+      });
+
+      if (!invite) {
+         return res.status(404).json({
+            message: "Invite not found"
+         });
+      }
+
+      //  Only pending invites can be cancelled
+      if (invite.status !== "pending") {
+         return res.status(400).json({
+            message: "Invite cannot be cancelled"
+         });
+      }
+
+      //  Update status instead of deleting (audit safe)
+      invite.status = "cancelled";
+      await invite.save();
+
+      return res.status(200).json({
+         message: "Invite cancelled successfully"
+      });
+
+   } catch (err) {
+      return res.status(500).json({
+         message: "Something went wrong"
+      });
+   }
+};
+
+
+ export {invite,accept,allmembers,PendingInvite,removeMember,promoteMember}
