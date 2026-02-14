@@ -3,6 +3,7 @@ import Workspace from "../models/Workspace";
 import {v4 as uuidv4} from 'uuid'
 import crypto from "crypto";
 import User from "../models/User";
+import { sendInviteEmail } from "../services/emailServices.js";
 
 
 
@@ -28,7 +29,6 @@ import User from "../models/User";
         }
 
       const user = await User.findOne({ email: normalizeEmail });      
-
       if (user) {
        const alreadyMember = workspace.members.find(
         (m) => m.user.toString() === user._id.toString()
@@ -63,6 +63,11 @@ const hashedToken = crypto
         status:"pending",
         expiresAt: new Date(Date.now()+7 * 24 * 60 * 60 * 1000)
      })
+     const adminUser = await User.findById(userId)
+    const inviteLink = `${process.env.HOST}/invite/${rawToken}`
+
+
+    await  sendInviteEmail({to:normalizeEmail, workspaceName:workspace.name,inviteLink:inviteLink,invitedByName:adminUser.name})
      res.status(200).json({message:"Invite Send Successfully"})
 
     }catch(err){
@@ -127,6 +132,8 @@ const hashedToken = crypto
 
      invitation.status = "accepted"
      await invitation.save()
+
+     
  
      return res.status(200).json({message:"Joined Workspace Successfully"})
     }catch(err){
