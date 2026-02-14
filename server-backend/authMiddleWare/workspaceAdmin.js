@@ -18,7 +18,7 @@ const workspaceAdmin = async (req, res, next) => {
     if (!isAdmin) {
       return res.status(403).json({ message: "You are not authorized" });
     }
-
+    req.workspace=workspace
     next();
   } catch (err) {
     return res.status(500).json({ message: "Server error" });

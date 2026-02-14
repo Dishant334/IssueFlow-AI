@@ -5,21 +5,16 @@ import crypto from "crypto";
 import User from "../models/User";
 
 
+
  // : POST /api/workspace/:workspaceid/invite
  const invite= async (req,res)=>{
     try{
     const {userId}=req.user
-    const {workspaceid}=req.params     /**1. extract workspace id from params */
+    const workspace=req.workspace     /**1. extract workspace id from params */
     const {email} = req.body  /**2.get email from cliend body*/
 
      if(!email) return res.status(400).json({message:"Enter Email"})
     const normalizeEmail= email.toLowerCase().trim()   /**3.normalize email to lowercase and trim it */
-      
-
-      const workspace = await Workspace.findById(workspaceid);
-      if (!workspace) {
-      return res.status(404).json({ message: "Workspace not found" });
-      }
       
       const member = workspace.members.find(
       (m) => m.user.toString() === userId);
@@ -36,7 +31,7 @@ import User from "../models/User";
 
       if (user) {
        const alreadyMember = workspace.members.find(
-        (m) => m.user.userId.toString() === user._id.toString()
+        (m) => m.user.toString() === user._id.toString()
           );
 
       if (alreadyMember) {
@@ -44,7 +39,7 @@ import User from "../models/User";
        }
          }
       const existingInvite = await Invitation.findOne({
-            workspaceId: workspaceid,
+            workspaceId: workspace._id,
             email: normalizeEmail,
              status: "pending"
              });
@@ -60,7 +55,7 @@ const hashedToken = crypto
   .digest("hex");
 
     await  Invitation.create({
-        workspaceId:workspaceid,
+        workspaceId:workspace._id,
         email:normalizeEmail,
         role:'member',
         invitedBy:userId,
@@ -79,7 +74,7 @@ const hashedToken = crypto
 
         return res.status(500).json({message:"Something went wrong"})
     }
-
+   }
    //:POST /api/invite/accept/:token    raw token
    const accept=async(req,res)=>{
     try{
@@ -93,7 +88,7 @@ const hashedToken = crypto
     const invitation= await Invitation.findOne({ token: hashedIncoming })
     if (!invitation)   return res.status(400).json({message: "Invalid invite"})
 
-    if(invitation.status!='pending') return res.status(400).json({message:"Invite already exists"})
+    if(invitation.status!='pending') return res.status(400).json({message:"Invite already processed"})
 
     if(invitation.expiresAt < Date.now()){
         invitation.status = "expired"
@@ -138,7 +133,7 @@ const hashedToken = crypto
      return res.status(500).json({message:"Something went wrong"})
     }
    }    
- }
+ 
 
  // GET /api/workspace/:workspaceid/members
 const allmembers = async(req,res)=>{
@@ -316,5 +311,46 @@ const cancelInvite = async (req, res) => {
    }
 };
 
+//: GET /api/invite/:token
+const gettoken =async(req,res)=>{
+   try{
+   const {token}= req.params
+   
+   if(!token) return res.status(400).json({message:"Token Not available"})
+   
+    const hashedIncoming = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+   
+    const invitation= await Invitation.findOne({ token: hashedIncoming }).populate("workspaceId","name")
+    if (!invitation)   return res.status(400).json({message: "Invalid invite"})
+   
+      if(invitation.status != 'pending'){
+      if(invitation.status=== 'accepted') return res.status(200).json({valid:false,message:"Already Accepted"})
+      if(invitation.status==='cancelled') return res.status(400).json({valid:false,message:"Invite Cancelled"})
+      if(invitation.status==='expired') return res.status(400).json({valid:false,message:"Invitation Expired"})     
+   } 
+   
+      if(invitation.expiresAt < Date.now()){
+      invitation.status = 'expired'
+    await  invitation.save()
+      return res.status(400).json({message:"Invitation Expired"})
+    }
 
- export {invite,accept,allmembers,PendingInvite,removeMember,promoteMember}
+ 
+   
+   return res.status(200).json({message: "Invite is valid", 
+      valid:true,
+      workspaceId:invitation.workspaceId._id,
+      workspaceName : invitation.workspaceId.name,
+      inviteemail:invitation.email,
+      expiresAt:invitation.expiresAt
+   })
+}catch(err){
+   return res.status(500).json({message : "Something Went Wrong"})
+}
+}
+
+
+export {invite,accept,allmembers,PendingInvite,removeMember,promoteMember,cancelInvite,gettoken}
