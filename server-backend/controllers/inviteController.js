@@ -1,8 +1,8 @@
-import Invitation from "../models/Invitation";
-import Workspace from "../models/Workspace";
+import Invitation from "../models/Invitation.js";
+import Workspace from "../models/Workspace.js";
 import {v4 as uuidv4} from 'uuid'
 import crypto from "crypto";
-import User from "../models/User";
+import User from "../models/User.js";
 import { sendInviteEmail } from "../services/emailServices.js";
 
 

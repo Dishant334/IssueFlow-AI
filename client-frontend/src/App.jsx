@@ -13,6 +13,7 @@ import DashboardMyTasks from './components/Dashboard/DashboardMyTasks.jsx'
 import ProtectedRoute from './protectFrontend/ProtectedRoute.jsx'
 import CreateWorkspace from './components/CreateWorkspace/CreateWorkspace.jsx'
 import DashboardSettings from './components/Dashboard/DashboardSettings.jsx'
+import InvitePage from './page/InvitePage.jsx'
 
 function App() {
 
@@ -37,6 +38,7 @@ function App() {
        <Route path='settings' element={<DashboardSettings/>}/>
      </Route>
      </Route>
+     <Route path='/invite/:token' element={<InvitePage/>}/>
     </Routes>
     </>
   )
