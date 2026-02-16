@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
-import { generateInviteTemplate } from "../templates/inviteTemplate.js";
+import { generateInviteTemplate } from "../template/inviteTemplate.js";
+
 
 // Create transporter ONCE (not inside function)
 const transporter = nodemailer.createTransport({
