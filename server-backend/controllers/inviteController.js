@@ -44,7 +44,7 @@ import { sendInviteEmail } from "../services/emailServices.js";
              status: "pending"
              });
         if (existingInvite) {
-           return res.status(400).json({ message: "Invite already sent" });
+           return res.status(404).json({ message: "Invite already sent" });
             } 
 
      const rawToken=uuidv4()    /**hash token */
@@ -64,7 +64,7 @@ const hashedToken = crypto
         expiresAt: new Date(Date.now()+7 * 24 * 60 * 60 * 1000)
      })
      const adminUser = await User.findById(userId)
-    const inviteLink = `${process.env.HOST}/invite/${rawToken}`
+    const inviteLink = `${process.env.HOST}invite/${rawToken}`
 
 
     await  sendInviteEmail({to:normalizeEmail, workspaceName:workspace.name,inviteLink:inviteLink,invitedByName:adminUser.name})
@@ -178,6 +178,9 @@ if (!isMember) {   //checking if the person trying to access is also a member of
    return res.status(403).json({ message: "Access denied" });
 }
 
+const currentMember = fullWorkspace.members.find(
+  m => m.user._id.toString() === userId
+);
   return res.status(200).json({
    members: fullWorkspace.members.map(m => ({
       userId: m.user._id,
@@ -185,13 +188,13 @@ if (!isMember) {   //checking if the person trying to access is also a member of
       email: m.user.email,
       role: m.role,
       joinedAt: m.joinedAt
-   }))
+   })),
+   currentUserRole: currentMember.role
 });
   }
   catch(err){
     return res.status(500).json({message:"Something went wrong"})
   }
-  
  }
   // GET /api/workspace/:workspaceid/invites
  const PendingInvite = async (req,res)=>{
@@ -273,11 +276,13 @@ const promoteMember=async(req,res)=>{
      targetMember.role="admin"
   
     await workspace.save()
-     return res.status(200).json({message:"Promote Successful"})
+     return res.status(409).json({message:"Promote Successful"})
     }catch(err){
       res.status(500).json({message:"Something Went Wrong"})
     }
 }
+
+
 // DELETE /api/workspace/:workspaceId/invite/:inviteId
 const cancelInvite = async (req, res) => {
    try {

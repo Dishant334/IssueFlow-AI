@@ -1,27 +1,27 @@
 import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Dashboard/Navbar'
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation, useParams } from 'react-router-dom'
 import {CirclePlus, FolderKanban, House, StickyNote, User} from 'lucide-react'
 import Workspace from '../components/Dashboard/Workspace'
 import { addWorkspace, getWorkspaces } from '../apiHelper/workspace'
 import toast from 'react-hot-toast'
-
+import { useNavigate } from 'react-router-dom'
 
 
 const Dashboar = () => {
+  const location=useLocation()
   const [title,setTitle]=useState('')
-  const [active,setActive]=useState("home")
+  const isActive = (path) => location.pathname.includes(path)
   const [openForm,setOpenForm]=useState(false)
   const [workspaces,setWorkspaces]=useState([])
   const [reload,setReload]=useState(false)
-  {/*handling functionsfor new workspace form */}
+  {/*handling functions for new workspace form */}
   const handleNewWorkspaceInput=(e)=>{
     setTitle(e.target.value)
   }
  const handleNewWorkspaceSubmit = async (e) => {
   e.preventDefault();
   try {
-    
     await addWorkspace(title.trim());
     toast.success("New Workspace Added Successfully");
     console.log("Submitting workspace:", title.trim());
@@ -65,11 +65,11 @@ useEffect(() =>{allWorkspaces()},[reload])
             </div>  
         {/*buttons*/}
           <div className='flex flex-col gap-3'>
-            <Link onClick={()=>{setActive('home')}} className={active==='home' ? `${activeState}`:`${inactiveState}`}to="home"><div  className="flex items-center gap-2"><House size={18}/> Home</div></Link>
-            <Link onClick={()=>{setActive("tasks")}} className={active==='tasks'? `${activeState}`:`${inactiveState}`}to="tasks"><div  className="flex items-center gap-2"><StickyNote  size={18}/> My Tasks</div></Link>
-            <Link onClick={()=>{setActive("projects")}} className={active==='projects'?`${activeState}`:`${inactiveState}`} to="projects"><div  className="flex items-center gap-2"><FolderKanban  size={18}/> My Projects</div></Link>
-            <Link onClick={()=>{setActive("members")}} className={active==='members'? `${activeState}`:`${inactiveState}`} to="members"><div  className="flex items-center gap-2"><User  size={18}/> Members</div></Link>
-           <Link onClick={()=>{setActive("settings")}} className={active==='settings'? `${activeState}`:`${inactiveState}`} to="settings"><div  className="flex items-center gap-2"><User  size={18}/> Settings</div></Link>
+            <Link  className={isActive('home') ? `${activeState}`:`${inactiveState}`}to="home"><div  className="flex items-center gap-2"><House size={18}/> Home</div></Link>
+            <Link  className={isActive('tasks')? `${activeState}`:`${inactiveState}`}to="tasks"><div  className="flex items-center gap-2"><StickyNote  size={18}/> My Tasks</div></Link>
+            <Link  className={isActive('projects')?`${activeState}`:`${inactiveState}`} to="projects"><div  className="flex items-center gap-2"><FolderKanban  size={18}/> My Projects</div></Link>
+            <Link  className={isActive('members')? `${activeState}`:`${inactiveState}`} to="members"><div  className="flex items-center gap-2"><User  size={18}/> Members</div></Link>
+           <Link  className={isActive('settings')? `${activeState}`:`${inactiveState}`} to="settings"><div  className="flex items-center gap-2"><User  size={18}/> Settings</div></Link>
           </div>
        </div>
       {/*right content*/}
