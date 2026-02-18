@@ -29,14 +29,14 @@ const generateInviteTemplate= ({workspaceName,inviteLink})=>{
           <tr>
             <td align="center" style="padding-bottom:25px;">
               <div style="font-size:18px;font-weight:bold;color:#111827;background:#f3f4f6;padding:12px 20px;border-radius:6px;display:inline-block;">
-                {${workspaceName}}
+                ${workspaceName}
               </div>
             </td>
           </tr>
 
           <tr>
             <td align="center" style="padding-bottom:30px;">
-              <a href="{${inviteLink}}" 
+              <a href="${inviteLink}" 
                  style="background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:bold;display:inline-block;">
                 Accept Invitation
               </a>
