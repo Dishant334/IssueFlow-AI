@@ -64,7 +64,7 @@ const hashedToken = crypto
         expiresAt: new Date(Date.now()+7 * 24 * 60 * 60 * 1000)
      })
      const adminUser = await User.findById(userId)
-    const inviteLink = `${process.env.HOST}invite/${rawToken}`
+    const inviteLink = `${process.env.HOST}/invite/${rawToken}`
 
 
     await  sendInviteEmail({to:normalizeEmail, workspaceName:workspace.name,inviteLink:inviteLink,invitedByName:adminUser.name})
@@ -107,7 +107,7 @@ const hashedToken = crypto
            }
 
            if (user.email !== invitation.email) {
-           return res.status(403).json({ message: "This invite is not for you" });
+           return res.status(403).json({ message: `This invite is sent to ${invitation.email} Please Login with correct account` });
               }
 
         
@@ -276,7 +276,7 @@ const promoteMember=async(req,res)=>{
      targetMember.role="admin"
   
     await workspace.save()
-     return res.status(409).json({message:"Promote Successful"})
+     return res.status(200).json({message:"Promote Successful"})
     }catch(err){
       res.status(500).json({message:"Something Went Wrong"})
     }

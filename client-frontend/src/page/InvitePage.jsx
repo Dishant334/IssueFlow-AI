@@ -11,13 +11,14 @@ const InvitePage = () => {
     const loginnavigation=()=>{
         navigate(`/login?redirect=/invite/${token}`)
     }
+    const authentoken=localStorage.getItem('token')
     const workspacenavigate=async()=>{
          try {
-      await api.post(`/invite/accept/${token}`)
+      await api.post(`/api/invite/accept/${token}`,{},{headers:{Authorization:`Bearer ${authentoken}`}})
       toast.success("Joined workspace successfully")
       navigate(`/workspace/${inviteData.workspaceId}`)
    } catch (err) {
-      toast.error("Could not accept invitation")
+      toast.error(err.response.data?.message)
    }
     }
     const {token}= useParams()
@@ -27,7 +28,7 @@ const InvitePage = () => {
     const [error,setError]=useState(false)
     const validateToken=async ()=>{
         try{
-        const response= await api.get(`/invite/${token}`)
+        const response= await api.get(`/api/invite/${token}`)
        
 
         setInviteData(response.data)
@@ -42,7 +43,7 @@ const InvitePage = () => {
          
          setLoading(false)
         }catch(err){
-           toast.error("Token is wrong")
+           toast.error(err.response.data?.message || "Something went wrong")
            setLoading(false)
            setError(true)
         }
@@ -59,12 +60,16 @@ useEffect(() => {
 if (error) return <Error title={inviteData?.message || "Invalid Invitation"} message='This link is no longer valid'/>
 
 return (
-  <div className='min-h-screen flex  items-center justify-center bg-linear-to-tr from-blue-400 to-blue-700'>
-    <div className='mx-auto '>
-        <p className='text-3xl'>You're invited to join : {inviteData.workspaceName}</p>
-        <p>Invited email: {inviteData.inviteemail}</p>
+  <div className='min-h-screen items-center flex bg-linear-to-tr from-gray-500 to-gray-800'>
+    <div className='mx-auto border-4 p-8 rounded-2xl flex flex-col items-center gap-2'>
+        <p className='text-3xl my-4'>You're invited to join : {inviteData.workspaceName}</p>
+        <div className='flex text-lg my-4'>
+         <p> Invited email : </p><p className='underline'>{inviteData.inviteemail}</p>
+        </div>
 
-        {!authtoken? <button onClick={()=>loginnavigation()}>Login to accept</button> : <button onClick={()=>workspacenavigate()}>Accept Invitation </button>}
+        <div>
+        {!authtoken? <button className='bg-linear-to-tr from-amber-600 to-amber-900 px-3 py-1 rounded-lg cursor-pointer' onClick={()=>loginnavigation()}>Login to accept</button> : <button className='bg-linear-to-tr from-green-600 to-green-900 px-3 py-1 rounded-lg cursor-pointer' onClick={()=>workspacenavigate()}>Accept Invitation </button>}
+        </div>
     </div>
   </div>
 )}
