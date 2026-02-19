@@ -23,7 +23,10 @@ const DashboardMembers = () => {
   const promoteMember=async({memberId})=>{
     try{
       await api.patch(`/api/workspace/${workspaceid}/member/${memberId}/promote`,{},{headers:{Authorization:`Bearer ${token}`}})
+        const confirmed = window.confirm("Are you sure you want to promote this member?")
+        if(!confirmed) return;
       toast.success('Member Promoted to Admin')
+      await membersData()
     await membersData()
     }catch(err){
       toast.error(err.response?.data?.message || 'Something went wrong')
@@ -33,7 +36,9 @@ const DashboardMembers = () => {
   const deleteMember=async({memberId})=>{
    try{
     await api.delete(`/api/workspace/${workspaceid}/member/${memberId}`)
-    toast.success('Member deleted Successfully')
+    const confirmed = window.confirm("Are you sure you want to delete this member?")
+      if(!confirmed) return;
+      toast.success('Member Removed Sucessfully')
     await membersData()
    }catch(err){
     toast.error(err.response.data?.message || 'Something went wrong')

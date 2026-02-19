@@ -36,7 +36,7 @@ const generateInviteTemplate= ({workspaceName,inviteLink})=>{
 
           <tr>
             <td align="center" style="padding-bottom:30px;">
-              <a href="${inviteLink}" 
+              <a href=${inviteLink} 
                  style="background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:bold;display:inline-block;">
                 Accept Invitation
               </a>

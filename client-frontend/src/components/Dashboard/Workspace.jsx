@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const Workspace = ({ workspaces }) => {
   const [open, setOpen] = useState(false);
@@ -68,7 +69,7 @@ const Workspace = ({ workspaces }) => {
       {open && (
         <div className="absolute z-30 mt-2 w-full rounded-md bg-white shadow-lg border">
           {workspaces.map((ws) => (
-            <div
+            <Link to={`/workspace/${ws.id}`}
               key={ws.id}
               onClick={() => {
                 setActive(ws);
@@ -86,7 +87,7 @@ const Workspace = ({ workspaces }) => {
                 {ws.name[0]}
               </div>
               <span className="text-gray-400 truncate">{ws.name} ({ws.role[0].toUpperCase()}) </span>
-            </div>
+            </Link>
           ))}
         </div>
       )}
