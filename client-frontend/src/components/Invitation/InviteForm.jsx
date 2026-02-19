@@ -4,7 +4,7 @@ import api from '../../../configs/api'
 import { useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
-const InviteForm = ({setShowInviteForm}) => {
+const InviteForm = ({setShowInviteForm,setRefresh}) => {
     const [formData,setFormData]=useState('')
     const {workspaceid}=useParams()
     const token=localStorage.getItem('token')
@@ -17,6 +17,7 @@ const InviteForm = ({setShowInviteForm}) => {
             await api.post(`/api/workspace/${workspaceid}/invite`,{email:formData},{headers:{Authorization:`Bearer ${token}`}})
             toast.success('Invite Sent Successfully')
             setFormData('')
+            setRefresh(r=>!r)
             onclose()
         }catch(err){
             toast.error(err.response.data?.message || 'Something went wrong')

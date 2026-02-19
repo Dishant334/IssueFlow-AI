@@ -202,7 +202,7 @@ const currentMember = fullWorkspace.members.find(
   
   const {workspaceid}=req.params
   
-  const invites=await Invitation.find({workspaceId : workspaceid,status:"pending"})
+  const invites=await Invitation.find({workspaceId : workspaceid,status:"pending"}).populate('invitedBy','name')
   
 
   return res.status(200).json({invites})
