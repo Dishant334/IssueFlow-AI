@@ -69,7 +69,7 @@ const Workspace = ({ workspaces }) => {
       {open && (
         <div className="absolute z-30 mt-2 w-full rounded-md bg-white shadow-lg border">
           {workspaces.map((ws) => (
-            <Link to={`/workspace/${ws.id}`}
+            <Link to={`/workspace/${ws.id}/home`}
               key={ws.id}
               onClick={() => {
                 setActive(ws);
