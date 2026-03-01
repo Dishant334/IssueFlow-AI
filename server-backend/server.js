@@ -5,6 +5,7 @@ import connectDB from './config/db.js'
 import userRouter from './routes/userRoutes.js'
 import workspaceRouter from './routes/workspaceRoute.js'
 import { inviteRouter } from './routes/invitationRoutes.js'
+import projectRouter from './routes/projectRoutes.js'
 
 const app=express()
 const port=process.env.PORT || 7001
@@ -16,6 +17,7 @@ app.use(cors())
 app.use('/api/users',userRouter)
 app.use('/api',workspaceRouter)
 app.use('/api',inviteRouter)
+app.use('/api',projectRouter)
 
 app.get('/',(req,res)=>{
     res.send("server is live")
