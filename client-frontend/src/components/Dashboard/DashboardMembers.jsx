@@ -51,7 +51,7 @@ const DashboardMembers = () => {
     try{
       const confirmed = window.confirm("Are you sure you want to delete this invite?")
       if(!confirmed) return;
-      await api.delete(`api/workspace/${workspaceid}/invite/${inviteId}`,{headers:{Authorization:`Bearer ${token}`}})
+      await api.delete(`/api/workspace/${workspaceid}/invite/${inviteId}`,{headers:{Authorization:`Bearer ${token}`}})
       setRefresh(r=>!r)
     }catch(err){
       toast.error(err.response.data?.message)

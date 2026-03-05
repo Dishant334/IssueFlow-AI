@@ -1,6 +1,5 @@
-import Project from "../models/Projects";
-import User from "../models/User";
-import Workspace from "../models/Workspace";
+import Project from "../models/Projects.js";
+import Workspace from "../models/Workspace.js";
 
 //GET /projects/:projectId
 const getproject=async(req,res)=>{
@@ -280,6 +279,7 @@ const deleteMember=async(req,res)=>{
 
 //Patch /project/:projectId/archive
 const projectdetailUpdate=async(req,res)=>{
+
   const {status}=req.body
   const {userId}=req.user
    if(!['active','archived'].includes(status)){
@@ -288,7 +288,7 @@ const projectdetailUpdate=async(req,res)=>{
   try{
   const {projectId}= req.params;
   if(!projectId) return res.status(404).json({message:"Project does not exist"})
-  
+
   const project= await Project.findById(projectId)
   if(!project) return res.status(404).json({message:"No project exists"})
   const workspace= await Workspace.findById(project.workspaceId)
@@ -296,6 +296,7 @@ const projectdetailUpdate=async(req,res)=>{
   
   const clickerInProject=project.members.find(m=>m.user.toString()===userId.toString())
   const clickerInWorkspace=workspace.members.find(m=>m.user.toString()===userId.toString())
+
   if(!clickerInWorkspace) return res.status(403).json({message:"You are not authorized"})
   const clickerRoleInProject=clickerInProject?.role
   const clickerRoleInWorkspace=clickerInWorkspace?.role
