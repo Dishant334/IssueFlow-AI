@@ -1,4 +1,4 @@
-import Project from "../../models/Projects";
+import Project from "../../models/Projects.js";
 
 const Archived=async(req,res,next)=>{
     try{
