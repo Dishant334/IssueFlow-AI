@@ -1,38 +1,60 @@
 import Project from "../models/Projects.js";
 import Workspace from "../models/Workspace.js";
 
-//GET /projects/:projectId
-const getproject=async(req,res)=>{
-    try{
-    const {userId}=req.user
-    const {projectId}=req.params
-     if(!projectId) return res.status(404).json({message:"Wrong Project id"})
+// GET /projects/:projectId
+const getproject = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const { projectId } = req.params;
 
-    const project=await Project.findById(projectId).populate("members.user","name").populate("createdBy","name")
-    if(!project) return res.status(404).json({message:"No Project Found"})
-    
-    const projectmember=project.members.find(m=>m.user._id.toString() === userId.toString())
+    if (!projectId)
+      return res.status(400).json({ message: "Project id required" });
 
-    const workspaceid=project.workspaceId;
-    const workspace=await Workspace.findById(workspaceid)
-       if(!workspace) return res.status(404).json({message:"No workspace found"})
-    const reqworkspace=workspace.members.find(m=>m.user.toString() === userId.toString())
-      if(!reqworkspace) return res.status(404).json({message:"Member not in this workspace"})
-      if(!projectmember && reqworkspace.role!=='admin') return res.status(403).json({message:"You are not authorized to access this project"})
+    const project = await Project.findById(projectId)
+      .populate("members.user", "name")
+      .populate("createdBy", "name");
 
-   return res.status(200).json({
-         projectName:project.name,
-         projectMembers:project.members.map(m=>{
-            return {name:m.user.name,role:m.role,joinedAt:m.joinedAt}
-         }),
-         projectDescription:project.description,
-         projectStatus:project.status,
-         projectCreater:project.createdBy.name,
-   })}
-   catch(err){
-    return res.status(500).json({message:"Something went wrong"})
-   }
-}
+    if (!project)
+      return res.status(404).json({ message: "Project not found" });
+
+    const workspace = await Workspace.findById(project.workspaceId);
+
+    if (!workspace)
+      return res.status(404).json({ message: "Workspace not found" });
+
+    const workspaceMember = workspace.members.find(
+      (m) => m.user.toString() === userId.toString()
+    );
+
+    if (!workspaceMember)
+      return res.status(403).json({ message: "Not part of workspace" });
+
+    const projectMember = project.members.find(
+      (m) => m.user._id.toString() === userId.toString()
+    );
+
+    if (!projectMember && workspaceMember.role !== "admin")
+      return res.status(403).json({
+        message: "You are not authorized to access this project",
+      });
+
+    return res.status(200).json({
+      projectName: project.name,
+      projectDescription: project.description,
+      projectStatus: project.status,
+      projectCreater: project.createdBy.name,
+
+      projectMembers: project.members.map((m) => ({
+        userId: m.user._id,
+        name: m.user.name,
+        role: m.role,
+        joinedAt: m.joinedAt,
+      })),
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
 
 // POST /workspace/:workspace/projects
  const createProject=async(req,res)=>{

@@ -130,7 +130,7 @@ const DashboardMembers = () => {
           <td className="px-6 py-4 text-sm text-gray-600">
             {m.email}
           </td>
-           {admin ? <td className="px-6 py-4 text-sm">
+           {m.role==='admin' ? <td className="px-6 py-4 text-sm">
             <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
               {m.role}
             </span>
@@ -159,6 +159,8 @@ const DashboardMembers = () => {
     </tbody>
   </table>
 </div>
+
+
 {(admin && invites.length > 0)&&(
   <div>
 <p className="text-2xl font-semibold mb-4 text-center">Invites</p>
