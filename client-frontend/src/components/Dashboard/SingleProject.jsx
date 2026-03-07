@@ -75,7 +75,7 @@ const SingleProject = () => {
 {/** navigations buttons*/}
 <NavButtons/>
 
-<Outlet/>
+<Outlet context={{singleProject}}/>
 
     </div>
   )
