@@ -1,7 +1,10 @@
-import React from "react";
-import { useOutletContext } from "react-router-dom";
+import React, { useState } from "react";
+import {  useOutletContext } from "react-router-dom";
+import AddMemberModal from "./AddMemberModal";
 
 const Members = () => {
+  const [isAddMember,setIsAddMember]=useState(false)
+
   const { singleProject } = useOutletContext();
 
   const admin = true; // replace later with role check
@@ -15,13 +18,13 @@ const Members = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 relative">
 
       <div className="flex justify-between items-center mb-4">
         <p className="text-2xl font-semibold">Members</p>
 
         {admin && (
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+          <button onClick={()=> setIsAddMember(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
             Add Member
           </button>
         )}
@@ -140,6 +143,7 @@ const Members = () => {
         </table>
 
       </div>
+      {isAddMember && <AddMemberModal setIsAddMember={setIsAddMember} projectMembers={singleProject.projectMembers}/>}
 
     </div>
   );

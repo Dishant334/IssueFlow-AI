@@ -35,7 +35,7 @@ function App() {
      <Route element={<ProtectedRoute/>}>
      <Route path='/createWorkspace' element={<CreateWorkspace/>}/>    
      <Route path='/workspace/:workspaceid' element={<Dashboar/>}>
-       <Route default element={<DashboardHome/>}/>
+       <Route index element={<DashboardHome/>}/>
        <Route path='home' element={<DashboardHome/>} />
        <Route path='tasks' element={<DashboardMyTasks/>}/>
        <Route path='projects' element={<DashboardAllProject/>}>
@@ -44,7 +44,7 @@ function App() {
               <Route path='projecto' element={<Overview/>}/>
               <Route path='projectt' element={<Tasks/>}/>
               <Route path='projectm' element={<Members/>}/>
-              <Route path='projects' element={<Setting/>}/>
+              <Route path='projectsset' element={<Setting/>}/>
             </Route>
        </Route>
        <Route path='members' element={<DashboardMembers/>}/>
