@@ -301,7 +301,6 @@ const deleteMember=async(req,res)=>{
 
 //Patch /project/:projectId/archive
 const projectdetailUpdate=async(req,res)=>{
-
   const {status}=req.body
   const {userId}=req.user
    if(!['active','archived'].includes(status)){
@@ -366,7 +365,7 @@ const updateProject = async (req, res) => {
   try {
     const { name, description } = req.body;
     const { userId } = req.user;
-
+    const {projectId}=req.params;
     //  Validate input
     if (!name && !description) {
       return res.status(400).json({

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const NavButtons = () => {
-  const [projectActive, setProjectActive] = useState("overview");
+  const location=useLocation()
+  
 
   const baseStyle =
     "px-4 py-2 rounded-lg text-sm font-medium transition duration-200";
@@ -21,7 +22,7 @@ const NavButtons = () => {
           to="projecto"
           onClick={() => setProjectActive("overview")}
           className={`${baseStyle} ${
-            projectActive === "overview" ? activeStyle : inactiveStyle
+            location.pathname.includes("projecto") ? activeStyle : inactiveStyle
           }`}
         >
           Overview
@@ -31,7 +32,7 @@ const NavButtons = () => {
           to="projectt"
           onClick={() => setProjectActive("projecttasks")}
           className={`${baseStyle} ${
-            projectActive === "projecttasks" ? activeStyle : inactiveStyle
+            location.pathname.includes("projectt") ? activeStyle : inactiveStyle
           }`}
         >
           Tasks
@@ -41,17 +42,17 @@ const NavButtons = () => {
           to="projectm"
           onClick={() => setProjectActive("projectmembers")}
           className={`${baseStyle} ${
-            projectActive === "projectmembers" ? activeStyle : inactiveStyle
+            location.pathname.includes("projectm")? activeStyle : inactiveStyle
           }`}
         >
           Members
         </Link>
 
         <Link
-          to="projects"
+          to="projectsset"
           onClick={() => setProjectActive("projectsettings")}
           className={`${baseStyle} ${
-            projectActive === "projectsettings" ? activeStyle : inactiveStyle
+            location.pathname.includes("projectsset")? activeStyle : inactiveStyle
           }`}
         >
           Settings
