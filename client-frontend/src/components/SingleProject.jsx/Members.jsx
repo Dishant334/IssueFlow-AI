@@ -5,9 +5,9 @@ import AddMemberModal from "./AddMemberModal";
 const Members = () => {
   const [isAddMember,setIsAddMember]=useState(false)
 
-  const { singleProject } = useOutletContext();
+  const { singleProject,permissions } = useOutletContext();
 
-  const admin = true; // replace later with role check
+  const admin = permissions.canManageMembers; // replace later with role check
 
   const deleteMember = (memberId) => {
     console.log("remove member", memberId);

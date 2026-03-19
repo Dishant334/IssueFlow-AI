@@ -26,6 +26,7 @@ const getproject = async (req, res) => {
       (m) => m.user.toString() === userId.toString()
     );
 
+   
     if (!workspaceMember)
       return res.status(403).json({ message: "Not part of workspace" });
 
@@ -50,6 +51,10 @@ const getproject = async (req, res) => {
         role: m.role,
         joinedAt: m.joinedAt,
       })),
+      currentUserRole:{
+        workspaceRole:workspaceMember.role ,
+        projectRole:projectMember?.role || null
+      }
     });
   } catch (err) {
     return res.status(500).json({ message: "Something went wrong" });

@@ -6,7 +6,7 @@ const Setting = () => {
   const navigate=useNavigate()
   const {projectId,workspaceid}=useParams()
   const token=localStorage.getItem('token')
-  const {singleProject}=useOutletContext()
+  const {singleProject,permissions}=useOutletContext()
     {/*Edit Project Details*/}
     const [editDetails,setEditDetails]=useState({name:'',desc:''})
     const handleSubmit=async(e)=>{
@@ -57,7 +57,8 @@ const Setting = () => {
       <div className="flex justify-between items-center mb-4">
     <p className='text-2xl font-semibold'>Project Settings</p>  
       </div>
-
+{permissions.canEditProject &&
+ <div>
   <p className="text-xl font-semibold text-gray-800 mx-4">
     Edit Project Details
   </p>
@@ -101,7 +102,10 @@ const Setting = () => {
   </form>
 </div>
     <hr className='my-8'/>
-
+    </div>
+}
+{permissions.canArchiveProject && 
+ <div>
 <div className='text-red-700 text-xl mx-4'>Danger Zone</div>
 <hr className="border-t border-gray-200 my-2 mx-4" />
     <div className='flex justify-evenly my-4'>
@@ -117,9 +121,12 @@ const Setting = () => {
     </button>
   </div>)
 }
-      <button onClick={deleteProject} className='px-4 py-1 bg-red-600 rounded-xl text-red-800 cursor-pointer'>Delete Project</button>
+
+   {permissions.canDeleteProject && <button onClick={deleteProject} className='px-4 py-1 bg-red-600 rounded-xl text-red-800 cursor-pointer'>Delete Project</button>}
       </div>
     </div>
+}
+</div>
   )
 }
 
