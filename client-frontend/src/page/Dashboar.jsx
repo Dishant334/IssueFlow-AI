@@ -66,7 +66,7 @@ useEffect(() =>{allWorkspaces()},[reload])
         {/*buttons*/}
           <div className='flex flex-col gap-3'>
             <Link  className={isActive('home') ? `${activeState}`:`${inactiveState}`}to="home"><div  className="flex items-center gap-2"><House size={18}/> Home</div></Link>
-            <Link  className={isActive('tasks')? `${activeState}`:`${inactiveState}`}to="tasks"><div  className="flex items-center gap-2"><StickyNote  size={18}/> My Tasks</div></Link>
+            <Link  className={isActive('tasks')? `${activeState}`:`${inactiveState}`}to="tasks"><div  className="flex items-center gap-2"><StickyNote  size={18}/> All Tasks</div></Link>
             <Link  className={isActive('projects')?`${activeState}`:`${inactiveState}`} to="projects"><div  className="flex items-center gap-2"><FolderKanban  size={18}/> My Projects</div></Link>
             <Link  className={isActive('members')? `${activeState}`:`${inactiveState}`} to="members"><div  className="flex items-center gap-2"><User  size={18}/> Members</div></Link>
            <Link  className={isActive('settings')? `${activeState}`:`${inactiveState}`} to="settings"><div  className="flex items-center gap-2"><User  size={18}/> Settings</div></Link>

@@ -7,13 +7,30 @@ import NavButtons from '../SingleProject.jsx/NavButtons'
 const SingleProject = () => {
   const [singleProject,setSingleProject]=useState({})
   const {projectId,workspaceid}=useParams()
+  const [permissions,setPermissions]=useState({})
   const token=localStorage.getItem("token")
   
   const navigate=useNavigate()
   const SingleProjectData=async ()=>{
     try{
       const response=await api.get(`/api/projects/${projectId}`,{headers:{Authorization:`Bearer ${token}`}})
-      setSingleProject(response.data)  
+      setSingleProject(response.data)
+      const currentUserRole = response.data.currentUserRole
+
+const isWorkspaceAdmin = currentUserRole.workspaceRole === "admin"
+const isProjectAdmin = currentUserRole.projectRole === "project_admin"
+const isArchived = response.data.projectStatus === "archived"
+
+setPermissions({
+     isWorkspaceAdmin,
+     isProjectAdmin,
+     isArchived,
+     canManageMembers: !isArchived && (isWorkspaceAdmin || isProjectAdmin),
+     canEditProject: !isArchived && (isWorkspaceAdmin || isProjectAdmin),
+     canArchiveProject: !isArchived && (isWorkspaceAdmin || isProjectAdmin),
+     canActivateProject: isArchived && (isWorkspaceAdmin || isProjectAdmin),
+     canDeleteProject: isArchived && isWorkspaceAdmin,
+      }) 
     }catch(err){
       toast.error(err.response?.data?.message ||"Something went wrong")
     }
@@ -75,7 +92,7 @@ const SingleProject = () => {
 {/** navigations buttons*/}
 <NavButtons/>
 
-<Outlet context={{singleProject}}/>
+<Outlet context={{singleProject,permissions}}/>
 
     </div>
   )
