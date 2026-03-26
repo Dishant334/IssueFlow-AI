@@ -6,6 +6,7 @@ import userRouter from './routes/userRoutes.js'
 import workspaceRouter from './routes/workspaceRoute.js'
 import { inviteRouter } from './routes/invitationRoutes.js'
 import projectRouter from './routes/projectRoutes.js'
+import taskRoute from './routes/taskRoutes.js'
 
 const app=express()
 const port=process.env.PORT || 7001
@@ -18,6 +19,7 @@ app.use('/api/users',userRouter)
 app.use('/api',workspaceRouter)
 app.use('/api',inviteRouter)
 app.use('/api',projectRouter)
+app.use('/api',taskRoute)
 
 app.get('/',(req,res)=>{
     res.send("server is live")
