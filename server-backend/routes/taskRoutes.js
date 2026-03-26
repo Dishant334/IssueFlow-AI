@@ -6,11 +6,11 @@ import { createTask, deleteTask, getAllTasksInProject, getSingleTaskDetails, mov
 
 const taskRoute=express.Router()
 
-taskRoute.post(createTask,'/workspace/:workspaceid/projects/:projectId/tasks',protect,validateWorkspaceAccess,validateProjectAccess)
-taskRoute.get(getAllTasksInProject,'/workspace/:workspaceid/projects/:projectId/tasks',protect,validateWorkspaceAccess,validateProjectAccess)
-taskRoute.get(getSingleTaskDetails,'/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess)
-taskRoute.patch(updateTask,'/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess)
-taskRoute.delete(deleteTask,'/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess)
-taskRoute.post(moveTask,'/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess)
+taskRoute.post('/workspace/:workspaceid/projects/:projectId/tasks',protect,validateWorkspaceAccess,validateProjectAccess,createTask)
+taskRoute.get('/workspace/:workspaceid/projects/:projectId/tasks',protect,validateWorkspaceAccess,validateProjectAccess,getAllTasksInProject)
+taskRoute.get('/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess,getSingleTaskDetails)
+taskRoute.patch('/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess,updateTask)
+taskRoute.delete('/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess,deleteTask)
+taskRoute.post('/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess,moveTask)
 
 export default taskRoute

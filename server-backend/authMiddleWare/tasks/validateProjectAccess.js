@@ -1,4 +1,4 @@
-import Project from "../../models/Projects";
+import Project from "../../models/Projects.js";
 
 const validateProjectAccess=async(req,res,next)=>{
     const {projectId}=req.params

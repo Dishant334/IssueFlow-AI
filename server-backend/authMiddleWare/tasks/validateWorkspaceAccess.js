@@ -1,4 +1,4 @@
-import Workspace from "../../models/Workspace"
+import Workspace from "../../models/Workspace.js"
 
 const validateWorkspaceAccess=async(req,res,next)=>{
     const {workspaceId}=req.params
