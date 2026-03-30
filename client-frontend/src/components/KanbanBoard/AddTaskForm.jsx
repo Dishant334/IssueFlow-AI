@@ -3,7 +3,7 @@ import api from '../../../configs/api'
 import { useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
-const AddTaskForm =({onClose}) => {
+const AddTaskForm =({onClose,fetchTasks}) => {
   const {workspaceid,projectId}=useParams()
   const token=localStorage.getItem('token')
   const [Member,setMember]=useState([])
@@ -25,9 +25,11 @@ const AddTaskForm =({onClose}) => {
      const response=await api.post(`/api/workspace/${workspaceid}/projects/${projectId}/tasks`,data,{headers:{Authorization:`Bearer ${token}`}})
      toast.success(response?.data?.message || 'Task Assigned Successfully')
      onClose()
+     await fetchTasks()
     }catch(err){
       toast.error(err?.response?.data?.message || 'Something Went Wrong')
     }
+
   }
 
   useEffect(() => {
