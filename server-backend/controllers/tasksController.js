@@ -7,7 +7,7 @@ const createTask = async (req, res) => {
     const { userId } = req.user;
     const user = await User.findById(userId);
 
-    const { title, description, assignedTo, status } = req.body;
+    const { title, description, assignedTo, status,priority } = req.body;
     const workspace = req.workspace;
     const project = req.project;
 
@@ -18,6 +18,8 @@ const createTask = async (req, res) => {
     const allowedStatus = ["todo", "in_progress", "done"];
     const finalStatus = status && allowedStatus.includes(status) ? status : "todo";
 
+    const allowedPriority=['low','medium','high']
+    const finalPriority=priority && allowedPriority.includes(priority) ? priority:'medium';
     // Validate assignee (only if provided)
     if (assignedTo) {
       const isMember = workspace.members.find(
@@ -40,6 +42,7 @@ const createTask = async (req, res) => {
       workspace: workspace._id,
       status: finalStatus,
       project: project._id,
+      priority:finalPriority,
       assignedTo,
       position: lastTask ? lastTask.position + 1000 : 1000,
     });
@@ -219,15 +222,15 @@ const moveTask = async (req, res) => {
     const workspace = req.workspace;
     const { userId } = req.user;
 
-    if (position === undefined || typeof position !== "number") {
-      return res.status(400).json({ message: "Invalid position" });
-    }
+
 
     const allowedStatus = ["todo", "in_progress", "done"];
     if (status && !allowedStatus.includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
-
+    if (position === undefined || typeof position !== "number" || isNaN(position)) {
+  return res.status(400).json({ message: "Invalid position" });
+}
     const task = await Task.findById(taskId);
     if (!task) return res.status(404).json({ message: "Task not found" });
 
