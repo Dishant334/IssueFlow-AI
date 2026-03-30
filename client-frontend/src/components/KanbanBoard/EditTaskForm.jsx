@@ -3,7 +3,7 @@ import api from '../../../configs/api'
 import { useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
-const AddTaskForm =({onClose,fetchTasks}) => {
+const EditTaskForm =({onClose,fetchTasks,taskId}) => {
   const {workspaceid,projectId}=useParams()
   const token=localStorage.getItem('token')
   const [Member,setMember]=useState([])
@@ -22,7 +22,7 @@ const AddTaskForm =({onClose,fetchTasks}) => {
   const handleSubmit=async(e)=>{
     e.preventDefault()
     try{
-     const response=await api.post(`/api/workspace/${workspaceid}/projects/${projectId}/tasks`,data,{headers:{Authorization:`Bearer ${token}`}})
+     const response=await api.patch(`/api/workspace/${workspaceid}/projects/${projectId}/tasks/${taskId}`,data,{headers:{Authorization:`Bearer ${token}`}})
      toast.success(response?.data?.message || 'Task Assigned Successfully')
      onClose()
      await fetchTasks()
@@ -30,6 +30,12 @@ const AddTaskForm =({onClose,fetchTasks}) => {
       toast.error(err?.response?.data?.message || 'Something Went Wrong')
     }
 
+
+
+
+
+
+    
   }
 
   useEffect(() => {
@@ -48,7 +54,7 @@ const AddTaskForm =({onClose,fetchTasks}) => {
        {/**modal */}
        <div className='mt-12  min-w-80 relative z-50 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl'>
           <form onSubmit={handleSubmit}>
-            <h1 className='text-xl'>Add a new task</h1>
+            <h1 className='text-xl'>Edit task</h1>
             <div className='flex flex-col my-4'>
             <label htmlFor="title">Enter Title</label>
             <input type="text" name='title' value={data.title} onChange={handleInput} placeholder='Enter Title Of Task' className='focus:outline-none text-sm text-gray-400' required/>
@@ -58,21 +64,6 @@ const AddTaskForm =({onClose,fetchTasks}) => {
               <textarea name="description" value={data.description} onChange={handleInput} className='focus:outline-none text-sm text-gray-400'  id="" placeholder='Enter description'></textarea>
             </div>
 
-            <h1>Select Status</h1>
-             <div style={{ display: "flex", gap: "10px" }}>
-            {["todo", "in_progress", "done"].map((item) => (
-        <label key={item}>
-           <input
-            type="radio"
-           name="status"
-           value={item}
-           checked={data.status === item}
-           onChange={handleInput}
-           />
-           {item}
-            </label>
-           ))}
-         </div>
           
           <h1 className='mt-4'>Select Priority</h1>
           <div style={{ display: "flex", gap: "10px" }}>
@@ -106,4 +97,4 @@ const AddTaskForm =({onClose,fetchTasks}) => {
   )
 }
 
-export default AddTaskForm
+export default EditTaskForm

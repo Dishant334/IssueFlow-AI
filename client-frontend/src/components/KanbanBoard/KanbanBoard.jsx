@@ -2,18 +2,38 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import api from "../../../configs/api";
 import { useParams } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus,Pencil,Trash2 } from "lucide-react";
 import {
   DragDropContext,
   Droppable,
   Draggable,
 } from "@hello-pangea/dnd";
 import AddTaskForm from "./AddTaskForm";
-const KanbanBoard = ({openForm,onClose}) => {
+import EditTaskForm from "./EditTaskForm";
+
+const KanbanBoard = ({openForm,onClose,setOpenForm}) => {
   const [data, setData] = useState([]);
+  const [isEditing,setIsEditing]=useState('')
   const token = window.localStorage.getItem("token");
   const { workspaceid, projectId } = useParams();
-  
+  function onClose(){
+    setIsEditing('')
+    setOpenForm(false)
+
+  }
+  const deleteTask=async(taskId)=>{
+    const confirm=window.confirm('Are you sure to delete this task')
+    if(!confirm) return
+    try{
+      const response=await api.delete(`/api/workspace/${workspaceid}/projects/${projectId}/tasks/${taskId}`,{headers:{Authorization:`Bearer ${token}`}})
+      toast.success(response?.data?.message || 'Task deleted successfully')
+      await fetchTasks()
+    }catch(err){
+      toast.error(err?.response?.data?.message || 'Something went wrong') 
+    }
+  }
+
+
   const fetchTasks = async () => {
     try {
       const response = await api.get(
@@ -112,7 +132,7 @@ const handleDragEnd = async (result) => {
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className="w-75 shrink-0 bg-gray-100 rounded-2xl p-4 flex flex-col max-h-[80vh] shadow-sm"
+          className="w-75 shrink-0 bg-gray-100 rounded-2xl p-4 flex flex-col max-h-[80vh] shadow-sm transition-all duration-200 hover:-translate-y-0.5"
         >
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
@@ -146,7 +166,7 @@ const handleDragEnd = async (result) => {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className="bg-white rounded-xl p-3 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
+                      className="relative group bg-white rounded-xl p-3 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
                     >
                       <p className="font-medium text-gray-800">
                         {task.title}
@@ -180,6 +200,10 @@ const handleDragEnd = async (result) => {
                           {task.priority}
                         </span>
                       </div>
+                      <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                        <button onClick={()=>setIsEditing(task._id)}  className="cursor-pointer hover:bg-green-400 p-0.5 rounded-md"><Pencil size={20}/></button>
+                        <button onClick={()=>deleteTask(task._id)} className="cursor-pointer hover:bg-red-400 p-0.5 rounded-md"><Trash2 size={20}/></button>
+                      </div>
                     </div>
                   )}
                 </Draggable>
@@ -207,7 +231,8 @@ const handleDragEnd = async (result) => {
           {renderColumn("IN PROGRESS", inProgress, "in_progress")}
           {renderColumn("DONE", done, "done")}
 
-          {openForm && <AddTaskForm onClose={onClose}/>}
+          {openForm && <AddTaskForm onClose={onClose} fetchTasks={fetchTasks}/>}
+          {isEditing && <EditTaskForm onClose={onClose} fetchTasks={fetchTasks} taskId={isEditing}/>}
         </div>
       </DragDropContext>
     </div>

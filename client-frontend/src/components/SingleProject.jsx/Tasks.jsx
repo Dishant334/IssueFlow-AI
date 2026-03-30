@@ -15,7 +15,7 @@ const Tasks = () => {
     
       </div>
       <div>  
-     <KanbanBoard openForm={openForm} onClose={onClose}/>
+     <KanbanBoard openForm={openForm} onClose={onClose} setOpenForm={setOpenForm}/>
      </div>
     </div>
   )

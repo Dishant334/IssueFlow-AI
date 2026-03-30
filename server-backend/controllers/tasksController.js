@@ -103,7 +103,7 @@ const getSingleTaskDetails = async (req, res) => {
 //UPDATE TASK
 const updateTask = async (req, res) => {
   try {
-    const { title, description, priority, assignedTo } = req.body;
+    const { title, description,priority, assignedTo} = req.body;
     const { taskId } = req.params;
     const { userId } = req.user;
 
