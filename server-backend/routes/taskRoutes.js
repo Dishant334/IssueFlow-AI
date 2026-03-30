@@ -11,6 +11,6 @@ taskRoute.get('/workspace/:workspaceid/projects/:projectId/tasks',protect,valida
 taskRoute.get('/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess,getSingleTaskDetails)
 taskRoute.patch('/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess,updateTask)
 taskRoute.delete('/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess,deleteTask)
-taskRoute.post('/workspace/:workspaceid/projects/:projectId/tasks/:taskId',protect,validateWorkspaceAccess,validateProjectAccess,moveTask)
+taskRoute.patch('/workspace/:workspaceid/projects/:projectId/tasks/:taskId/move',protect,validateWorkspaceAccess,validateProjectAccess,moveTask)
 
 export default taskRoute
