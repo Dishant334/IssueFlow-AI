@@ -82,7 +82,7 @@ const getSingleTaskDetails = async (req, res) => {
     const project = req.project;
     const workspace = req.workspace;
 
-    const task = await Task.findById(taskId);
+    const task = await Task.findById(taskId).populate('createdBy','name').populate('assignedTo','name');
     if (!task) return res.status(404).json({ message: "Task not found" });
 
     // Security validation
