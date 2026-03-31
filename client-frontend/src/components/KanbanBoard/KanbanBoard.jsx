@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import api from "../../../configs/api";
 import { useParams } from "react-router-dom";
-import { Plus,Pencil,Trash2 } from "lucide-react";
+import { Plus,Pencil,Trash2, CheckSquare, Loader, CheckCircle } from "lucide-react";
 import {
   DragDropContext,
   Droppable,
@@ -10,16 +10,18 @@ import {
 } from "@hello-pangea/dnd";
 import AddTaskForm from "./AddTaskForm";
 import EditTaskForm from "./EditTaskForm";
+import SingleTaskModal from "./SingleTaskModal";
 
 const KanbanBoard = ({openForm,onClose,setOpenForm}) => {
   const [data, setData] = useState([]);
   const [isEditing,setIsEditing]=useState('')
+  const [singleTask,setSingleTask]=useState('')
   const token = window.localStorage.getItem("token");
   const { workspaceid, projectId } = useParams();
   function onClose(){
     setIsEditing('')
     setOpenForm(false)
-
+    setSingleTask('')
   }
   const deleteTask=async(taskId)=>{
     const confirm=window.confirm('Are you sure to delete this task')
@@ -126,7 +128,9 @@ const handleDragEnd = async (result) => {
   const done = data.filter((m) => m.status === "done");
 
   //COLUMN
-  const renderColumn = (title, tasks, status) => (
+  const renderColumn = (title, tasks, status,logo) =>{ 
+    const Icon=logo
+    return (
     <Droppable droppableId={status}>
       {(provided) => (
         <div
@@ -144,7 +148,7 @@ const handleDragEnd = async (result) => {
             </div>
 
             <button className="p-2 rounded-lg hover:bg-gray-200 transition">
-              <Plus size={16} />
+              <Icon size={16} />
             </button>
           </div>
 
@@ -166,6 +170,7 @@ const handleDragEnd = async (result) => {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
+                      onClick={()=>setSingleTask(task._id)}
                       className="relative group bg-white rounded-xl p-3 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
                     >
                       <p className="font-medium text-gray-800">
@@ -215,7 +220,7 @@ const handleDragEnd = async (result) => {
         </div>
       )}
     </Droppable>
-  );
+  )};
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -226,13 +231,14 @@ const handleDragEnd = async (result) => {
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex items-start justify-evenly gap-6 overflow-x-auto px-2 pb-4 scroll-smooth">
-          {renderColumn("TODO", todo, "todo")}
-          {renderColumn("IN PROGRESS", inProgress, "in_progress")}
-          {renderColumn("DONE", done, "done")}
+        <div className="flex items-start gap-6 overflow-x-auto px-2 pb-4 scroll-smooth">
+          {renderColumn("TODO", todo, "todo",CheckSquare)}
+          {renderColumn("IN PROGRESS", inProgress, "in_progress",Loader)}
+          {renderColumn("DONE", done, "done",CheckCircle)}
 
           {openForm && <AddTaskForm onClose={onClose} fetchTasks={fetchTasks}/>}
           {isEditing && <EditTaskForm onClose={onClose} fetchTasks={fetchTasks} taskId={isEditing}/>}
+          {singleTask && <SingleTaskModal onClose={onClose} taskId={singleTask}/>}
         </div>
       </DragDropContext>
     </div>
