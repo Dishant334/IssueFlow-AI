@@ -20,7 +20,7 @@ const home = async (req, res) => {
       recentProjects
     ] = await Promise.all([
       // Counts
-      Project.countDocuments({ workspace: workspaceid }),
+      Project.countDocuments({ workspaceId: workspaceid }),
       Task.countDocuments({ workspace: workspaceid }),
       Task.countDocuments({workspace:workspaceid,assignedTo:userId}),
       Task.countDocuments({ workspace: workspaceid,assignedTo:userId ,status: "done" }),
@@ -33,7 +33,7 @@ const home = async (req, res) => {
         .populate("createdBy", "name"),
 
       // Recent projects (limit 2)
-      Project.find({ workspace: workspaceid })
+      Project.find({ workspaceId: workspaceid })
         .sort({ createdAt: -1 })
         .limit(2)
     ]);
