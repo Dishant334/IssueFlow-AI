@@ -1,5 +1,5 @@
 import Workspace from '../models/Workspace.js'
-import User from './model/User.js'
+import User from '../models/User.js'
 
 const details =async (req,res)=>{
     try{
@@ -12,13 +12,13 @@ const details =async (req,res)=>{
      const username=user.name
      const email=user.email
      
-     const workspace=await Workspace.findById(workspaceid)
+     const workspace=await Workspace.findById(workspaceid).populate('createdBy','name')
      if(!workspace) return res.status(401).json({message:"Workspace not found"})
 
     const workspacename=workspace.name
-    const workspacecreating=workspace.createdBy
-    const date = new Date(workspace.createdAt);
-    const workspacecreatedOn=workspace.date
+    const workspacecreating=workspace.createdBy.name
+    const date = new Date(workspace.createdAt).toLocaleDateString();
+    const workspacecreatedOn=date
     
     const details={
         username:username,
@@ -35,15 +35,15 @@ const details =async (req,res)=>{
 
 const updateUser=async (req,res)=>{
     try{
-    const userId=req.user
-    const updateName=req.body
-    const newName=updateName.trim()
+    const {userId}=req.user
+    const {updateName}=req.body
+    const newName=updateName?.trim()
     if(!newName) return res.status(401).json({message:"Please Write a valid username"})
     const user=await User.findById(userId)
     if(!user) return res.status(401).json({message:"User not found"})
     const name=user.name
     
-    if(name ===newName) return 
+    if(name ===newName)   return res.status(200).json({message:"No changes made"})
 
     await User.findByIdAndUpdate(userId,{name:newName})
     return res.status(200).json({message:"UserName Updated Successfully"})
@@ -57,7 +57,7 @@ const updateWorkspace=async(req,res)=>{
     const {userId}=req.user
     const {workspaceid}=req.params
 
-    const workspaceName=req.body
+    const {workspaceName}=req.body
 
     const newWorkspaceName=workspaceName.trim()
     if(!newWorkspaceName) return res.status(401).json({message:"Please Enter a valid workspace name"})
@@ -65,7 +65,7 @@ const updateWorkspace=async(req,res)=>{
      const workspace=await Workspace.findById(workspaceid)
      if(!workspace) return res.status(400).json({message:"Workspace not found"})
     
-     if(workspace.name===workspaceName) return
+     if(workspace.name===newWorkspaceName) return res.status(200).json({message:"No changes made"})
 
      const member=workspace.members.find((m=>m.user.toString()===userId.toString()))
      if(!member) return res.status(400).json({message:"You are not a member of workspace"})
@@ -84,9 +84,10 @@ const updateWorkspace=async(req,res)=>{
         const workspace=await Workspace.findById(workspaceid)
         if(!workspace) return res.status(400).json({message:"Workspace not found"})
         
-        workspace=workspace.members.filter((m)=>m.user.toString!=userId.toString)
+        workspace.members=workspace.members.filter((m)=>m.user.toString()!=userId.toString())
 
         await workspace.save()
+        return res.status(200).json({message:'Left workspace successfully'})
        }catch(err){
          return res.status(500).json({message:"Something went wrong"})
        }

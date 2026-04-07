@@ -1,7 +1,38 @@
 import React from 'react'
-import { TriangleAlert } from 'lucide-react'
+import { TableRowsSplit, TriangleAlert } from 'lucide-react'
+import { useState } from 'react'
+import api from '../../../configs/api'
+import toast from 'react-hot-toast'
+import { useParams } from 'react-router-dom'
+import { useEffect } from 'react'
 
 const DashboardSettings = () => {
+const [detail,setDetail]=useState({})
+const [name,setName]=useState('')
+const[email,setEmail]=useState('')
+const [workspaceName,setWorkspaceName]=useState('')
+const {workspaceid}=useParams()
+const token=localStorage.getItem('token')
+
+const fetchData=async()=>{
+    try{
+    const response=await api.get(`/api/workspace/${workspaceid}/details`,{headers:{Authorization:`Bearer ${token}`}})
+    setDetail(response.data.details)
+    }catch(err){
+      toast.error(err?.response?.data?.message || 'Something went wrong')
+    }
+}
+
+useEffect(() => {
+  if (detail?.username) {  setName(detail.username) }
+  if(detail?.workspacename){ setWorkspaceName(detail.workspacename)}
+  if(detail?.email){setEmail(detail.email)}
+}, [detail])
+
+useEffect(()=>{fetchData()},[workspaceid])
+
+
+
   return (
     <div className='p-4'>
       
@@ -20,10 +51,11 @@ const DashboardSettings = () => {
           <div className='flex items-end gap-10 flex-wrap'>
             
             <div className='flex flex-col'>
-              <label className='text-xs text-gray-500 mb-1'>Username</label>
+              <label className='text-xs text-gray-500 mb-1'>Name</label>
               <input
                 type="text"
                 placeholder='Enter name'
+                value={name}
                 className='px-3 py-2 w-64 bg-gray-300 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-400 outline-none'
               />
             </div>
@@ -33,7 +65,9 @@ const DashboardSettings = () => {
               <input
                 type="text"
                 placeholder='Enter email'
+                value={email}
                 className='px-3 py-2 w-64 bg-gray-200 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-400 outline-none'
+                disabled
               />
             </div>
 
@@ -50,8 +84,8 @@ const DashboardSettings = () => {
             <h1 className='text-lg font-semibold'>Workspace Details</h1>
 
             <div className='text-xs text-gray-500 text-right'>
-              <p>Created By: --</p>
-              <p>Created On: --</p>
+              <p>Created By: {detail.workspacecreating || '--'} </p>
+              <p>Created On: {detail.workspacecreatedOn ||'--'}</p>
             </div>
           </div>
 
@@ -63,6 +97,7 @@ const DashboardSettings = () => {
               <input
                 type="text"
                 placeholder='Workspace name'
+                value={workspaceName}
                 className='px-3 py-2 w-80 bg-gray-300 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-400 outline-none'
               />
             </div>
