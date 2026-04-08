@@ -81,13 +81,28 @@ const updateWorkspace=async(req,res)=>{
         try{
         const {userId}=req.user
         const {workspaceid}=req.params
+       
         const workspace=await Workspace.findById(workspaceid)
         if(!workspace) return res.status(400).json({message:"Workspace not found"})
-        
-        workspace.members=workspace.members.filter((m)=>m.user.toString()!=userId.toString())
+     const admins = workspace.members.filter((m) => m.role === 'admin')
 
+      if (admins.length === 1 && admins[0].user.toString() === userId.toString()) {
+       return res.status(400).json({
+        message: "You are the last admin. Transfer ownership or delete workspace"
+       })
+}
+        const isLastAdmin = admins.length === 1 && admins[0].user.toString() === userId.toString()
+        workspace.members=workspace.members.filter((m)=>m.user.toString()!=userId.toString())
         await workspace.save()
-        return res.status(200).json({message:'Left workspace successfully'})
+
+        const remainingWorkspaces = await Workspace.find({
+          "members.user": userId
+            })
+        return res.status(200).json({
+            message:'Left workspace successfully',
+            isLastAdmin:isLastAdmin,
+            remainingWorkspaces
+        })
        }catch(err){
          return res.status(500).json({message:"Something went wrong"})
        }
@@ -103,10 +118,16 @@ const updateWorkspace=async(req,res)=>{
 
      const member=workspace.members.find((m=>m.user.toString()===userId.toString()))
      if(!member) return res.status(400).json({message:"You are not a member of workspace"})
-     if(member.role!='admin') return res.status(409).json({message:"You are not authorised to update the name"})
+     if(member.role!='admin') return res.status(409).json({message:"You are not authorised to delete this workspace"})
  
+        
         await Workspace.findByIdAndDelete(workspaceid)
-        return res.status(200).json({message:"Workspace deleted successfully"})
+        
+        const remainingWorkspaces=await Workspace.find({'members.user':userId})
+        return res.status(200).json({
+            message:"Workspace deleted successfully",
+            remainingWorkspaces:remainingWorkspaces
+        })
       }catch(err){
          return res.status(500).json({message:"Something went wrong"})
       }

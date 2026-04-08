@@ -1,18 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 const Workspace = ({ workspaces }) => {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(null);
   const ref = useRef(null);
-  
+  const {workspaceid}=useParams()
 
   // set first workspace once data arrives
-  useEffect(() => {
-    if (workspaces?.length > 0 && !active) {
-      setActive(workspaces[0]);
-    }
-  }, [workspaces, active]);
+ useEffect(() => {
+  if (!workspaces || workspaces.length === 0) {
+    setActive(null);
+    return;
+  }
+
+  // check if current active still exists
+  const exists = workspaces.find(ws => ws.id === active?.id);
+
+  if (!exists) {
+    setActive(workspaces[0]); // fallback
+  }
+
+}, [workspaces]);
 
   // close dropdown on outside click
   useEffect(() => {
