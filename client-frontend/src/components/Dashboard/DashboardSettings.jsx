@@ -3,7 +3,7 @@ import { TableRowsSplit, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import api from '../../../configs/api'
 import toast from 'react-hot-toast'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect } from 'react'
 
 const DashboardSettings = () => {
@@ -22,10 +22,83 @@ const fetchData=async()=>{
       toast.error(err?.response?.data?.message || 'Something went wrong')
     }
 }
+const handleNameInput=(e)=>{
+  setName(e.target.value)
+}
+const handleWorkspaceInput=(e)=>{
+  setWorkspaceName(e.target.value)
+}
+
+const updateName=async()=>{
+  const confirm=window.confirm('Are you sure you want to change your name')
+  if(!confirm) return
+  try{
+    if(!name){
+      toast.error('Please Type a valid name')
+    }
+    const response=await api.patch(`/api/workspace/${workspaceid}/settings/user`,{updateName:name},{headers:{Authorization:`Bearer ${token}`}})
+    toast.success(response?.data?.message)
+  }catch(err){
+    toast.error(err?.response?.data?.message)
+  }
+}
+
+const updateWorkspace=async()=>{
+  const confirm=window.confirm('Are you sure you want to change the workspace name')
+  if(!confirm) return
+  try{
+    if(!workspaceName){
+      toast.error('Please type a valid email')
+    }
+    const response=await api.patch(`/api/workspace/${workspaceid}/settings/workspace`,{workspaceName:workspaceName},{headers:{Authorization:`Bearer ${token}`}})
+     toast.success(response?.data?.message)
+  }catch(err){
+     toast.error(err?.response?.data?.message)
+  }
+}
+const navigate=useNavigate()
+const leaveWorkspace=async()=>{
+  const confirm=window.confirm('Are you sure you want to leave this workspace')
+  if(!confirm) return
+try{
+  const response=await api.delete(`/api/workspace/${workspaceid}/me`,{headers:{Authorization:`Bearer ${token}`}})
+  toast.success(response?.data?.message)
+
+   const remaining=response?.data?.remainingWorkspaces
+
+    if(remaining && remaining.length >0){
+      navigate(`/workspace/${remaining[0]._id}`)
+    }else{
+      navigate(`/`)
+    }
+}catch(err){
+  toast.error(err?.response?.data?.message)
+}    
+}
+
+const deleteWorkspace=async()=>{
+  const confirm=window.confirm('Are you sure you want to delete this workspace')
+  if(!confirm) return
+  try{
+    const response=await api.delete(`/api/workspace/${workspaceid}/remove`,{headers:{Authorization:`Bearer ${token}`}})
+    toast.success(response?.data?.message)
+
+    const remaining=response?.data?.remainingWorkspaces
+
+    if(remaining && remaining.length >0){
+      navigate(`/workspace/${remaining[0]._id}`)
+    }else{
+      navigate(`/`)
+    }
+  }catch(err){
+    toast.error(err?.response?.data?.message)
+  }
+
+}
 
 useEffect(() => {
-  if (detail?.username) {  setName(detail.username) }
-  if(detail?.workspacename){ setWorkspaceName(detail.workspacename)}
+  if (detail?.username) {setName(detail.username) }
+  if(detail?.workspacename){setWorkspaceName(detail.workspacename)}
   if(detail?.email){setEmail(detail.email)}
 }, [detail])
 
@@ -55,6 +128,7 @@ useEffect(()=>{fetchData()},[workspaceid])
               <input
                 type="text"
                 placeholder='Enter name'
+                onChange={handleNameInput}
                 value={name}
                 className='px-3 py-2 w-64 bg-gray-300 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-400 outline-none'
               />
@@ -71,7 +145,7 @@ useEffect(()=>{fetchData()},[workspaceid])
               />
             </div>
 
-            <button className='h-10 px-4 rounded-md bg-linear-to-r from-blue-900 to-blue-600 text-white text-sm font-medium hover:opacity-90 transition'>
+            <button onClick={updateName} className='h-10 px-4 rounded-md bg-linear-to-r from-blue-900 to-blue-600 text-white text-sm font-medium hover:opacity-90 transition'>
               Update Profile
             </button>
 
@@ -98,11 +172,12 @@ useEffect(()=>{fetchData()},[workspaceid])
                 type="text"
                 placeholder='Workspace name'
                 value={workspaceName}
+                onChange={handleWorkspaceInput}
                 className='px-3 py-2 w-80 bg-gray-300 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-400 outline-none'
               />
             </div>
 
-            <button className='h-10 px-4 rounded-md bg-linear-to-r from-blue-900 to-blue-600 text-white text-sm font-medium hover:opacity-90 transition'>
+            <button onClick={updateWorkspace} className='h-10 px-4 rounded-md bg-linear-to-r from-blue-900 to-blue-600 text-white text-sm font-medium hover:opacity-90 transition'>
               Save Changes
             </button>
           </div>
@@ -129,11 +204,11 @@ useEffect(()=>{fetchData()},[workspaceid])
 
           {/* Buttons */}
           <div className='mt-6 flex gap-4'>
-            <button className='text-red-700 font-medium px-4 py-2 border border-red-300 rounded-md hover:bg-red-100 transition'>
+            <button onClick={leaveWorkspace} className='text-red-700 font-medium px-4 py-2 border border-red-300 rounded-md hover:bg-red-100 transition'>
               Leave Workspace
             </button>
 
-            <button className='text-white font-medium px-4 py-2 bg-red-700 rounded-md hover:bg-red-800 transition'>
+            <button onClick={deleteWorkspace} className='text-white font-medium px-4 py-2 bg-red-700 rounded-md hover:bg-red-800 transition'>
               Delete Workspace
             </button>
           </div>
