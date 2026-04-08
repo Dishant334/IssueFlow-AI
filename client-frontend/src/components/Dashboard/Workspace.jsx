@@ -7,21 +7,19 @@ const Workspace = ({ workspaces }) => {
   const ref = useRef(null);
   const {workspaceid}=useParams()
 
-  // set first workspace once data arrives
  useEffect(() => {
-  if (!workspaces || workspaces.length === 0) {
-    setActive(null);
-    return;
+  if (!workspaces || workspaces.length === 0) return;
+
+  const current = workspaces.find(ws => ws.id === workspaceid);
+
+  if (current) {
+    setActive(current);
+  }
+  if(!current){
+    setActive(workspaces[0])
   }
 
-  // check if current active still exists
-  const exists = workspaces.find(ws => ws.id === active?.id);
-
-  if (!exists) {
-    setActive(workspaces[0]); // fallback
-  }
-
-}, [workspaces]);
+}, [workspaceid, workspaces]);
 
   // close dropdown on outside click
   useEffect(() => {
