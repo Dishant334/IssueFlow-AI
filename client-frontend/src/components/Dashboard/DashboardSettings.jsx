@@ -68,6 +68,7 @@ try{
 
     if(remaining && remaining.length >0){
       navigate(`/workspace/${remaining[0]._id}`)
+      window.location.reload()
     }else{
       navigate(`/`)
     }
@@ -87,6 +88,7 @@ const deleteWorkspace=async()=>{
 
     if(remaining && remaining.length >0){
       navigate(`/workspace/${remaining[0]._id}`)
+      window.location.reload()
     }else{
       navigate(`/`)
     }
