@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react'
 import api from '../../../configs/api'
 import { useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import Comments from '../Comments/Comments.jsx'
 
 const SingleTaskModal = ({onClose,taskId}) => {
     const [task,setTask]=useState({})
     const {workspaceid,projectId}=useParams()
     const token=localStorage.getItem('token')
+    const [text,setText]=useState('')
 
     const fetchData=async(taskId)=>{
        try{
@@ -15,6 +17,18 @@ const SingleTaskModal = ({onClose,taskId}) => {
        }catch(err){
          toast.error(err?.response?.data?.message)
        }
+    }
+    const addText=(e)=>{
+       setText(e.target.value)
+    }
+  
+    const addComment=async()=>{
+        try{
+          const response= await api.post(`/api/workspace/${workspaceid}/project/${projectId}/task/${taskId}/comments`,{text:text},{headers:{Authorization:`Bearer ${token}`}})
+          setText('')
+        }catch(err){
+            toast.err(err?.response?.data?.message)
+        }
     }
     
     useEffect(() => {
@@ -30,7 +44,7 @@ const SingleTaskModal = ({onClose,taskId}) => {
         <div className='absolute inset-0 bg-black/40 backdrop-blur-md min-h-screen ' onClick={onClose}/>
 
         {/* Modal */}
-        <div className='relative bg-white z-10 w-125 rounded-xl shadow-xl p-6 space-y-5'>
+        <div className='relative bg-white z-10 w-125 min-h-160 rounded-xl shadow-xl p-6 space-y-5'>
             
             {/* Title */}
             <h1 className='text-center font-semibold text-2xl text-gray-800'>
@@ -93,17 +107,16 @@ const SingleTaskModal = ({onClose,taskId}) => {
                     <input 
                         type="text" 
                         placeholder='Write a comment...' 
+                        value={text}
+                        onChange={addText}
                         className='w-full text-sm focus:outline-none'
                     />
-                    <button className='text-sm bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition'>
+                    <button onClick={addComment} className='text-sm bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition'>
                         Send
                     </button>
                 </div>
 
-                {/* Placeholder */}
-                <p className='text-xs text-gray-400 mt-2'>
-                    No comments yet
-                </p>
+                <Comments taskId={taskId}/>
             </div>
             
         </div>

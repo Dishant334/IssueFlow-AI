@@ -12,7 +12,7 @@ import {
 
 const DashboardMyTasks = ({openForm,onClose,setOpenForm}) => {
   const [data, setData] = useState([]);
-  const [singleTask,setSingleTask]=useState('')
+
   const token = window.localStorage.getItem("token");
   const { workspaceid, projectId } = useParams();
   function onClose(){
@@ -221,7 +221,6 @@ const handleDragEnd = async (result) => {
           {renderColumn("DONE", done, "done",CheckCircle)}
 
     
-          
         </div>
       </DragDropContext>
     </div>

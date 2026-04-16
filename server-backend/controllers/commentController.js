@@ -1,8 +1,9 @@
 import Comment from "../models/Comments.js";
 import { Task } from "../models/Tasks.js";
+import { getio } from "../services/socketServices.js";
 
 const createComment =async(req,res)=>{
-    try{
+    try{        
    const {userId}=req.user
    const workspace=req.workspace
    const project=req.project
@@ -24,6 +25,14 @@ const createComment =async(req,res)=>{
         text:text,
         isEdited:false,
     })
+
+    //real time change
+     const populatedComment = await Comment.findById(comment._id)
+     .populate("user", "name")
+
+     const io = getio();
+     io.to(taskId).emit("newComment", populatedComment);
+
     return res.status(200).json({message:"Comment added successfully",comment})
 }catch(err){
     return res.status(500).json({message:"Something went wrong"})
@@ -36,6 +45,12 @@ const showComments=async(req,res)=>{
    const workspace=req.workspace
    const project=req.project
    const {taskId}=req.params
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 3
+
+    const skip = (page - 1) * limit
+
+  
 
    if(!taskId) return res.status(400).json({message:"TaskId is wrong"})
    const task=await Task.findById(taskId)
@@ -45,9 +60,19 @@ const showComments=async(req,res)=>{
    const taskInProject=task.project.toString()===project._id.toString()
   if(!taskInProject) return res.status(400).json({message:"Task not in project"})
 
-   const comments= await Comment.find({ taskId }).sort({ createdAt: -1 }).populate("user", "name email") 
+  const comments = await Comment.find({ taskId })
+      .populate("user", "name")
+      .sort({ createdAt: -1 }) // latest first
+      .skip(skip)
+      .limit(limit) 
 
-    return res.status(200).json({comments})
+    const total = await Comment.countDocuments({ taskId })
+
+return res.status(200).json({
+  comments,
+  totalPages: Math.ceil(total / limit),
+  currentPage: page
+})
 }catch(err){
     return res.status(500).json({message:"Something went wrong"})
 }
@@ -82,6 +107,10 @@ const deleteComment=async (req,res)=>{
 
 
     await Comment.findByIdAndDelete(commentId)
+
+    //real time change
+    const io = getio();
+   io.to(taskId).emit("deleteComment", commentId);
 
     return res.status(201).json({message:"Comment deleted successfully"})
 }catch(err){
@@ -123,6 +152,13 @@ const editComment=async(req,res)=>{
     
 
     await Comment.findByIdAndUpdate(commentId,{ text: editedComment, isEdited: true },{ new: true })
+
+    //real time change
+    const io = getio();
+    io.to(taskId).emit("editComment", {
+    commentId,
+    text: editedComment
+    });
 
     return res.status(200).json({message:"Comment edited successfully"})
    }catch(err){
