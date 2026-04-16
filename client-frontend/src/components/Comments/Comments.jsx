@@ -57,7 +57,7 @@ const [totalPages, setTotalPages] = useState(1)
     try {
       await api.patch(
         `/api/workspace/${workspaceid}/project/${projectId}/task/${taskId}/comments/${commentId}/edit`,
-        { text: editText },
+        { editedComment: editText },
         {
           headers: { Authorization: `Bearer ${token}` }
         }
