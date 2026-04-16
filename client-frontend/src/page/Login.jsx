@@ -29,7 +29,7 @@ const redirect=params.get('redirect')
   e.preventDefault();
 
   try {
-    // 1️⃣ Login first
+    // Login first
     const res = await api.post('/api/users/login', login);
 
     toast.success('Login Successful');
@@ -38,11 +38,11 @@ const redirect=params.get('redirect')
 
   
 
-    // 3️⃣ Navigate based on data
+    // Navigate based on data
     if(redirect){
       navigate(redirect)
     }else{
-        // 2️⃣ NOW fetch workspaces (token exists)
+        //  NOW fetch workspaces (token exists)
     const workspaceData = await workspaces();
     if (workspaceData.length === 0) {
       navigate('/createWorkspace');
@@ -66,12 +66,19 @@ const redirect=params.get('redirect')
        navigate('/register') 
     }
   return (
-<div className='flex justify-center items-center h-screen w-screen bg-amber-100 '>
-        <div className='w-100 border-2 z-10 bg-amber-200'>
+<div className='relative min-h-screen flex items-center justify-center bg-[#e6ecf3] overflow-hidden'>
+          
+          <div className="absolute w-72 h-72 bg-purple-400 opacity-30 rounded-full blur-md top-10 left-10"></div>
+         <div className="absolute w-96 h-96 bg-blue-300 opacity-30 rounded-full blur-md bottom-10 right-10"></div>
+          <div className="absolute w-64 h-64 bg-indigo-400 opacity-30 rounded-full blur-md top-1/2 left-1/4"></div>
+           <div className="absolute w-40 h-40 bg-gray-400 opacity-30 rounded-full blur-md top-5 right-1/4 "></div>
+
+          {/*glass card*/}
+        <div className='relative z-10 backdrop-blur-xl bg-white/40 border border-white/50 rounded-2xl p-8 shadow-xl min-h-64'>
              <form onSubmit={handleSubmit} action="" className='flex flex-col gap-10  p-4'>
-                <input type="email" className='h-8 p-4' placeholder='Email' name="email" value={login.email} onChange={handleInput}/>
-                <input type="password" className='h-8 p-4' placeholder='Password' name="password" value={login.password} onChange={handleInput}/>
-                  <div className='flex justify-between'>
+                <input type="email" className='h-8 p-4 hover:border-2 border-gray-400 rounded-lg focus:outline-none' placeholder='Email' name="email" value={login.email} onChange={handleInput}/>
+                <input type="password" className='h-8 p-4 hover:border-2 border-gray-400 rounded-lg focus:outline-none' placeholder='Password' name="password" value={login.password} onChange={handleInput}/>
+                  <div className='flex justify-between gap-8'>
                   <button type='submit' className='bg-blue-700 w-28 h-8 rounded-full cursor-pointer'>Login</button>
                   <p>Not a member? <button type='button' onClick={toRegister} className='text-yellow-400 cursor-pointer'>Sign Up</button></p>
                   </div>
