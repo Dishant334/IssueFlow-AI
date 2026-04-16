@@ -9,6 +9,8 @@ import projectRouter from './routes/projectRoutes.js'
 import taskRoute from './routes/taskRoutes.js'
 import homeRoute from './routes/homeRoute.js'
 import settingRoute from './routes/settingRoute.js'
+import commentRoute from './routes/commentRoute.js'
+import { initSocket } from './services/socketServices.js'
 
 const app=express()
 const port=process.env.PORT || 7001
@@ -24,10 +26,16 @@ app.use('/api',projectRouter)
 app.use('/api',taskRoute)
 app.use('/api',homeRoute)
 app.use('/api',settingRoute)
+app.use('/api',commentRoute)
+
+
 
 app.get('/',(req,res)=>{
     res.send("server is live")
 })
-app.listen(port,()=>{
+const server = app.listen(port,()=>{
     console.log("Server is running")
 })
+
+//initialize socket
+initSocket(server)

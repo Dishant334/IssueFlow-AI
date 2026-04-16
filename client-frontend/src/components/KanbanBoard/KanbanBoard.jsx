@@ -136,7 +136,7 @@ const handleDragEnd = async (result) => {
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className="w-75 shrink-0 bg-gray-100 rounded-2xl p-4 flex flex-col max-h-[80vh] shadow-sm transition-all duration-200 hover:-translate-y-0.5"
+          className="w-75 shrink-0 bg-gray-100 rounded-2xl p-4 flex flex-col max-h-[80vh]  shadow-sm transition-all duration-200 hover:-translate-y-0.5"
         >
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
@@ -171,6 +171,7 @@ const handleDragEnd = async (result) => {
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
                       onClick={()=>setSingleTask(task._id)}
+                      
                       className="relative group bg-white rounded-xl p-3 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
                     >
                       <p className="font-medium text-gray-800">
