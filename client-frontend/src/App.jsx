@@ -19,10 +19,7 @@ import Overview from './components/SingleProject.jsx/Overview.jsx'
 import Setting from './components/SingleProject.jsx/Setting.jsx'
 import Members from './components/SingleProject.jsx/Members.jsx'
 import Tasks from './components/SingleProject.jsx/Tasks.jsx'
-
 function App() {
-
-
   return (
     <>
            <Toaster position="top-center" reverseOrder={false} />
@@ -30,7 +27,6 @@ function App() {
       <Route path='/' element={<Home/>}/>
       <Route path='/login' element={<Login/>}/>
      <Route path='/register' element={<Register/>}/>
-
      {/*Protected Route*/}
      <Route element={<ProtectedRoute/>}>
      <Route path='/createWorkspace' element={<CreateWorkspace/>}/>    
