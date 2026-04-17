@@ -11,7 +11,7 @@ const Footer = () => {
       className="w-full bg-linear-to-b from-[#F1EAFF] to-[#FFFFFF] text-gray-800"
     >
 
-      <div className="max-w-7xl mx-auto px-6 py-16 flex flex-col items-center">
+      <div className="max-w-7xl mx-auto px-4 py-12 flex flex-col items-center">
 
         {/* Logo */}
         <motion.div
@@ -21,7 +21,7 @@ const Footer = () => {
           viewport={{ once: true }}
           className="flex items-center space-x-3 mb-6"
         >
-          <img alt="" className="h-11" src="logo.png" />
+          <img alt="/" className="h-32 " src="logo.png" />
         </motion.div>
 
         {/* Text */}

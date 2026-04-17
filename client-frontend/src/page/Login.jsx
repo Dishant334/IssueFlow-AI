@@ -3,19 +3,22 @@ import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {toast} from 'react-hot-toast'
 import { getWorkspaces } from '../apiHelper/workspace'
+import {EyeClosed,Eye} from 'lucide-react';
 
 const Login = () => {
   
 const navigate=useNavigate()
-
 const location=useLocation()
 const params=new URLSearchParams(location.search)
 const redirect=params.get('redirect')
   
+
       const [login,setLogin]=useState({
         email:'',
         password:''
     })
+
+    const [showPassword,setShowPassword]=useState(false)
     const workspaces=async()=>{
        try{
         const response = await  getWorkspaces()
@@ -76,8 +79,40 @@ const redirect=params.get('redirect')
           {/*glass card*/}
         <div className='relative z-10 backdrop-blur-xl bg-white/40 border border-white/50 rounded-2xl p-8 shadow-xl min-h-64'>
              <form onSubmit={handleSubmit} action="" className='flex flex-col gap-10  p-4'>
-                <input type="email" className='h-8 p-4 hover:border-2 border-gray-400 rounded-lg focus:outline-none' placeholder='Email' name="email" value={login.email} onChange={handleInput}/>
-                <input type="password" className='h-8 p-4 hover:border-2 border-gray-400 rounded-lg focus:outline-none' placeholder='Password' name="password" value={login.password} onChange={handleInput}/>
+               <div className="flex flex-col gap-6">
+
+  {/* Email */}
+          <input
+           type="email"
+           name="email"
+           value={login.email}
+           onChange={handleInput}
+           placeholder="Email"
+           className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+           />
+
+           {/* Password */}
+           <div className="relative w-full">
+            <input
+             type={showPassword ? "text" : "password"}
+             name="password"
+             value={login.password}
+             onChange={handleInput}
+            placeholder="Password"
+            className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            />
+
+           {/* Eye Icon */}
+            <button
+            type="button"
+             onClick={() => setShowPassword(prev => !prev)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900"
+            >
+           {showPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
+           </button>
+             </div>
+ 
+            </div>
                   <div className='flex justify-between gap-8'>
                   <button type='submit' className='bg-blue-700 w-28 h-8 rounded-full cursor-pointer'>Login</button>
                   <p>Not a member? <button type='button' onClick={toRegister} className='text-yellow-400 cursor-pointer'>Sign Up</button></p>

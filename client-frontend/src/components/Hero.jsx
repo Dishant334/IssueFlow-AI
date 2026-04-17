@@ -25,10 +25,10 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
 
       </div>
 
-      {/* ✅ Navbar */}
-      <nav className="flex items-center justify-between gap-8 bg-white/70 backdrop-blur-md border border-white/40 shadow-sm rounded-full px-4 md:px-2 py-2.5 w-full max-w-3xl z-2">
-        <Link to="/" className='flex items-center md:pl-3'>
-          <img src="logo.png" className='w-12' />
+      {/* Navbar */}
+      <nav className="flex items-center justify-between gap-8 bg-white/70 backdrop-blur-md border border-white/40 shadow-sm rounded-full px-4 md:px-2  w-full max-w-3xl z-2">
+        <Link to="/" className='flex items-center'>
+          <img src="logo.png" className='w-28' />
         </Link>
 
         <div className='w-0.5 h-8 bg-gray-100 hidden md:flex'></div>
@@ -55,7 +55,7 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
         </div>
       </nav>
 
-      {/* ✅ Badge */}
+      {/* Badge */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

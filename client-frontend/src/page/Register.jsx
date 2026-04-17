@@ -2,6 +2,7 @@ import api from '../../configs/api'
 import React, { useState } from 'react'
 import {  useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import {EyeClosed,Eye} from 'lucide-react';
 
 
 
@@ -15,9 +16,20 @@ const Register = () => {
     password:''
 })
 
+ const [showPassword,setShowPassword]=useState(false)
+ const [passwordError,setPasswordError]=useState('')
+
     const handleSubmit=(e)=>{
       e.preventDefault()
-      console.log(register)
+      if(!register.password){
+        setPasswordError('Please enter a valid password')
+        return
+      }
+      if(register.password.length <6){
+        setPasswordError(`Please enter atleast 6 digits`)
+        return
+      }
+
             api.post("/api/users/register",register)
             .then(()=>{
                toast.success("SignUp Sucess Login Now")
@@ -48,9 +60,36 @@ const Register = () => {
 
         <div className='relative z-10 backdrop-blur-xl bg-white/40 border border-white/50 rounded-2xl p-8 shadow-xl min-h-84'>
              <form onSubmit={handleSubmit} action="" className='flex flex-col gap-10  p-4'>
-                <input type="text" className='h-8 p-4 hover:border-2 border-gray-400 rounded-lg focus:outline-none' placeholder='Username' name="name" value={register.name} onChange={handleInput}/>
-                <input type="email"  className='h-8 p-4 hover:border-2 border-gray-400 rounded-lg focus:outline-none' placeholder='Email' name="email" value={register.email} onChange={handleInput}/>
-                <input type="password" className='h-8 p-4 hover:border-2 border-gray-400 rounded-lg focus:outline-none' placeholder='Password' name="password" value={register.password} onChange={handleInput}/>
+                <input type="text" className='w-full px-4 py-2 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition' placeholder='Username' name="name" value={register.name} onChange={handleInput}/>
+                <input type="email"  className='w-full px-4 py-2 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition' placeholder='Email' name="email" value={register.email} onChange={handleInput}/>
+
+
+                 {/* Password */}
+                          <div className="relative w-full">
+                           <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            value={register.password}
+                            onChange={handleInput}
+                           placeholder="Password"
+                           className="w-full px-4 py-2  pr-10 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                           />
+               
+                          {/* Eye Icon */}
+                           <button
+                           type="button"
+                            onClick={() => setShowPassword(prev => !prev)}
+                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900"
+                           >
+                          {showPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
+                          </button>
+                          {passwordError && (
+                           <p className="text-red-500 text-sm ml-3 ">{passwordError}</p>
+                             )}
+                            </div>
+                           
+                            
+               
                   <div className='flex justify-between gap-8'>
                   <button type='submit' className='bg-blue-700 w-28 h-8 rounded-full cursor-pointer'>Sign Up</button>
                   <p>Already a member? <button type="button" onClick={toLogin} className='text-yellow-400 cursor-pointer'>Login</button></p>

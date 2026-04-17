@@ -68,7 +68,7 @@ const Features = () => {
           <path d="M18 12h4" />
         </svg>
       ),
-      title: "AI-Powered Insights",
+      title: "AI-Powered Insights(Future)",
       description: "Generate issue descriptions, suggest priorities, and summarize project progress using AI.",
     },
     {
