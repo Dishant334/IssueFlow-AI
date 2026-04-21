@@ -11,6 +11,7 @@ import homeRoute from './routes/homeRoute.js'
 import settingRoute from './routes/settingRoute.js'
 import commentRoute from './routes/commentRoute.js'
 import { initSocket } from './services/socketServices.js'
+import aiRoute from './routes/aiRoutes.js'
 
 const app=express()
 const port=process.env.PORT || 7001
@@ -27,6 +28,7 @@ app.use('/api',taskRoute)
 app.use('/api',homeRoute)
 app.use('/api',settingRoute)
 app.use('/api',commentRoute)
+app.use('/api/ai',aiRoute)
 
 
 
