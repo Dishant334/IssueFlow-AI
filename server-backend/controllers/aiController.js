@@ -16,10 +16,10 @@ export const generateDescription = async (req, res) => {
 
     const trimmedDesc = description?.trim();
 
-    const prompt = `You are an AI assistant for a project management tool. Convert the following rough issue input into a short and clear issue description. Keep it concise (4-6 lines). Use simple and professional language. Do not over-explain. Avoid unnecessary assumptions. Input: title: ${trimmedTitle} description: ${trimmedDesc || ""}`;
+    const prompt = `You are an AI assistant for a project management tool. Convert the following rough issue input into a short and clear issue description. Keep it concise (2-3 lines). Use simple and professional language. Do not over-explain. Avoid unnecessary assumptions.Just give the output no extra comments. Input: title: ${trimmedTitle} description: ${trimmedDesc || ""}`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
 
@@ -34,8 +34,9 @@ export const generateDescription = async (req, res) => {
 
     return res.status(200).json({ description: text });
   } catch (err) {
-    return res.status(500).json({ message: "AI service failed" });
-  }
+  console.error("AI ERROR:", err.message);
+  return res.status(500).json({ message: `AI service failed due to ${err.message}` });
+}
 };
 
 export const suggestPriority = async (req, res) => {
@@ -61,7 +62,7 @@ export const suggestPriority = async (req, res) => {
     const prompt = `You are an AI assistant for a project management tool. Analyze the issue based on its title and description and suggest a priority level. Rules: Respond with only one word: LOW, MEDIUM, or HIGH. Do not explain your answer. Low: minor issue, Medium: important issue but not blocking, High: critical bug, blocking issue, or security issue. Input: title: ${trimmedTitle}, description: ${trimmedDesc}`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
 
@@ -82,7 +83,7 @@ export const suggestPriority = async (req, res) => {
 
     return res.status(200).json({ priority: result });
   } catch (err) {
-    return res.status(500).json({ message: "AI service failed" });
+      return res.status(500).json({ message: `AI service failed due to ${err.message}` });
   }
 };
 
@@ -109,7 +110,7 @@ export const summarizeComments = async (req, res) => {
     const prompt = `You are an AI assistant for a project management tool. Summarize the following issue comments into a short, clear summary. Rules: Keep it concise (3-5 lines). Highlight key decisions, concerns, or progress. Avoid unnecessary details. Use simple professional language. Comments: ${commentText}`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
 
@@ -124,6 +125,6 @@ export const summarizeComments = async (req, res) => {
 
     return res.status(200).json({ summary: text });
   } catch (err) {
-    return res.status(500).json({ message: "AI service failed" });
+      return res.status(500).json({ message: `AI service failed due to ${err.message}` });
   }
 };

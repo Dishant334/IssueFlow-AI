@@ -9,7 +9,15 @@ const SingleTaskModal = ({onClose,taskId}) => {
     const {workspaceid,projectId}=useParams()
     const token=localStorage.getItem('token')
     const [text,setText]=useState('')
-
+    const [commentSummary,setCommentSummary]=useState('')
+    const commentSummaryButton=async(taskId)=>{
+        try{
+          const response=await api.post('/api/ai/summarize-comments',{issueId:taskId},{headers:{Authorization:`Bearer ${token}`}})
+          setCommentSummary(response.data.summary)
+        }catch(err){
+            toast.error(err?.response?.data?.message || 'Something Went Wrong')
+        }
+    }
     const fetchData=async(taskId)=>{
        try{
          const response= await api.get(`/api/workspace/${workspaceid}/projects/${projectId}/tasks/${taskId}`,{headers:{Authorization:`Bearer ${token}`}})
@@ -38,13 +46,13 @@ const SingleTaskModal = ({onClose,taskId}) => {
     }, [workspaceid, projectId, taskId]);
 
   return (
-    <div className='absolute inset-0 flex justify-center py-40' onClick={(e)=>e.stopPropagation()}>
+    <div className='absolute inset-0 flex justify-center py-20' onClick={(e)=>e.stopPropagation()}>
         
         {/* Overlay */}
         <div className='absolute inset-0 bg-black/40 backdrop-blur-md min-h-screen ' onClick={onClose}/>
 
         {/* Modal */}
-        <div className='relative bg-white z-10 w-125 min-h-160 rounded-xl shadow-xl p-6 space-y-5'>
+        <div className='relative bg-white z-10 w-125 min-h-180 rounded-xl shadow-xl p-6 space-y-5'>
             
             {/* Title */}
             <h1 className='text-center font-semibold text-2xl text-gray-800'>
@@ -97,10 +105,13 @@ const SingleTaskModal = ({onClose,taskId}) => {
             </div>
 
             {/* Comments Section */}
-            <div className='px-2 pt-4'>
+            <div className='px-4 pt-2'>
+                <div className='flex justify-between py-4'>
                 <p className='text-lg font-semibold text-gray-800 mb-3'>
                     Comments
                 </p>
+             <button type='button' onClick={()=>commentSummaryButton(taskId)}  className='bg-linear-to-r from-indigo-500 to-cyan-600 px-2 py-0.5 rounded-lg cursor-pointer'>✨Generate Summary</button>
+                </div>
 
                 {/* Input */}
                 <div className='flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-300'>

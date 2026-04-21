@@ -29,7 +29,31 @@ const AddTaskForm =({onClose,fetchTasks}) => {
     }catch(err){
       toast.error(err?.response?.data?.message || 'Something Went Wrong')
     }
+  }
+  const handleAiDescriptionSubmit=async()=>{
+    try{
+      const response=await api.post('/api/ai/generate-description',{title:data.title,description:data.description},{headers:{Authorization:`Bearer ${token}`}})
+      setData((prev) => ({
+          ...prev,
+         description: response.data.description
+          }));
+      toast.success("Description Generated Successfully")
+    }catch(err){
+      toast.error(err?.response?.data?.message)
+    }
+  }
 
+  const handleAiPrioritySubmit=async()=>{
+    try{
+      const response=await api.post('/api/ai/suggest-priority',{title:data.title,description:data.description},{headers:{Authorization:`Bearer ${token}`}})
+      setData((prev) => ({
+          ...prev,
+         priority:response.data.priority.toLowerCase()
+          }));
+          toast.success("Priority Suggested Successfully")
+    }catch(err){
+        toast.error(err?.response?.data?.message)
+    }
   }
 
   useEffect(() => {
@@ -50,11 +74,14 @@ const AddTaskForm =({onClose,fetchTasks}) => {
           <form onSubmit={handleSubmit}>
             <h1 className='text-xl'>Add a new task</h1>
             <div className='flex flex-col my-4'>
-            <label htmlFor="title">Enter Title</label>
+            <label htmlFor="title">Enter Title</label> 
             <input type="text" name='title' value={data.title} onChange={handleInput} placeholder='Enter Title Of Task' className='focus:outline-none text-sm text-gray-400' required/>
             </div>
             <div className='flex flex-col my-4'>
+              <div className='flex justify-between'>
               <label htmlFor="description">Enter Description</label>
+               <button onClick={handleAiDescriptionSubmit} type='button' className='bg-linear-to-r from-indigo-500 to-cyan-600 px-2 py-0.5 rounded-lg cursor-pointer'>✨Ai Generate</button>
+              </div>
               <textarea name="description" value={data.description} onChange={handleInput} className='focus:outline-none text-sm text-gray-400'  id="" placeholder='Enter description'></textarea>
             </div>
 
@@ -73,8 +100,10 @@ const AddTaskForm =({onClose,fetchTasks}) => {
             </label>
            ))}
          </div>
-          
-          <h1 className='mt-4'>Select Priority</h1>
+          <div className='flex justify-between py-4'>
+          <h1 className=''>Select Priority</h1>
+          <button type='button' onClick={handleAiPrioritySubmit} className='bg-linear-to-r from-indigo-500 to-cyan-600 px-2 rounded-lg cursor-pointer'>✨Ai Suggest</button>
+          </div>
           <div style={{ display: "flex", gap: "10px" }}>
             {["low", "medium", "high"].map((newitem) => (
         <label key={newitem}>
