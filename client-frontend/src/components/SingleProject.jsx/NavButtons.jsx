@@ -1,22 +1,34 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-const NavButtons = () => {
+const NavButtons = ({loading}) => {
   const location=useLocation()
   
 
+
   const baseStyle =
-    "px-4 py-2 rounded-lg text-sm font-medium transition duration-200";
+    "px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all duration-300 ease-out min-w-20 text-center";
 
   const activeStyle =
-    "bg-white text-indigo-700 shadow";
+    "bg-white text-black shadow-sm";
 
   const inactiveStyle =
-    "bg-indigo-100 text-gray-600 hover:bg-indigo-200";
+    "bg-slate-400 hover:text-slate-100 hover:bg-slate-700/60 hover:scale-[1.03] hover:shadow-md hover:shadow-blue-500/10";
+
+      if (loading) {
+    return (
+      <div className="flex gap-4 px-12 mt-4 animate-pulse justify-center">
+        <div className="h-10 w-24 bg-slate-700 rounded-full"></div>
+        <div className="h-10 w-24 bg-slate-700 rounded-full"></div>
+        <div className="h-10 w-24 bg-slate-700 rounded-full"></div>
+        <div className="h-10 w-24 bg-slate-700 rounded-full"></div>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex justify-center my-4">
-      <div className="flex gap-6 bg-linear-to-br from-blue-100 to-indigo-100 p-3 rounded-2xl shadow-lg">
+    <div className="flex justify-center  my-4">
+      <div className="flex gap-6 bg-slate-800 p-3 rounded-2xl shadow-lg ">
 
         <Link
           to="projecto"

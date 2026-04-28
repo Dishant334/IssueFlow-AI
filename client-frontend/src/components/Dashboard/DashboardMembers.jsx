@@ -12,6 +12,7 @@ const DashboardMembers = () => {
   const [showInviteForm,setShowInviteForm]=useState(false)
   const [invites,setInvite]=useState([]) 
   const [refresh,setRefresh]=useState(false)
+  const [loading,setLoading]=useState(false)
 
 
   useEffect(() => {
@@ -59,6 +60,7 @@ const DashboardMembers = () => {
   }
 
    const membersData=async()=>{
+    setLoading(true)
     try{
      const response=await api.get(`/api/workspace/${workspaceid}/members`,{headers:{Authorization:`Bearer ${token}`}})
      setMembers(response.data.members) 
@@ -67,168 +69,174 @@ const DashboardMembers = () => {
      }
     }catch(err){
       toast.error(err.message?.response)
+    }finally{
+      setLoading(false)
     }
    }
 
    const pendingInvites=async()=>{
+    setLoading(true)
     try{
       const response=await api.get(`/api/workspace/${workspaceid}/invites`,{headers:{Authorization:`Bearer ${token}`}})
       setInvite(response.data.invites)
     }catch(err){
       toast.error(err.message?.response)
-    }
+    }finally{
+    setLoading(false)
+   }
    }
    
    useEffect(() => {
   membersData()
   if (admin) pendingInvites()
 }, [workspaceid, admin, refresh])
-  
+     
+   if(loading){
+      return  <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
+  <div className="w-10 h-10 border-4 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+</div>
+   }
   return (
-    <div   className='relative flex flex-col gap-6 items-center'>
-      <p className='text-4xl text-gray-400'>Workspace Members</p>
-
-      {admin && <button onClick={()=>setShowInviteForm(true)} className='bg-linear-to-r p-2 from-purple-400 to-purple-700 cursor-pointer rounded-2xl'>Invite New Members</button> }
+    <div   className='relative gap-6 items-center'>
+       <div className='m-4  flex justify-between'>
+        <div>
+        <p className='font-semibold text-3xl text-slate-100'>Workspace Members</p>
+        <p className='text-sm text-slate-400 mt-1 max-w-md'>Manage your teams and permissions</p>
+          </div>
+         {admin && <button onClick={()=>setShowInviteForm(true)} className='bg-blue-500/10 text-blue-400 border border-blue-500/30 px-4 py-2 hover:bg-blue-500/20 transition-all duration-200 cursor-pointer rounded-2xl mr-8'>Invite New Members</button> }
+         
+      </div>
       
- <p className="text-2xl font-semibold mb-4">Members</p>
 
-<div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm  md:table-fixed  bg-white">
-  <table className="min-w-full border-collapse">
-    <thead className="bg-gray-50">
-      <tr>
-        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          Name
-        </th>
-        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          Email
-        </th>
-        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          Role
-        </th>
-        {admin && 
-          <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          Remove Member
-        </th>}
-        {admin && 
-          <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          Promote Member
-        </th>}
+     
       
-      </tr>
-    </thead>
+<div className="bg-slate-800/40 backdrop-blur-md border border-slate-700 rounded-xl p-5">
 
-    <tbody className="divide-y divide-gray-200">
-      {members.map(m => (
-        <tr
-          key={m.userId}
-          className="hover:bg-gray-50 transition-colors"
-        >
-          <td className="px-6 py-4 text-sm font-medium text-gray-900">
-            {m.name}
-          </td>
+  {/* Header */}
+  <div className="flex justify-between items-center mb-5">
+    <h2 className="text-white text-lg font-semibold">Members</h2>
+    <span className="text-slate-400 text-sm">{members.length} members</span>
+  </div>
 
-          <td className="px-6 py-4 text-sm text-gray-600">
-            {m.email}
-          </td>
-           {m.role==='admin' ? <td className="px-6 py-4 text-sm">
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
-              {m.role}
-            </span>
-          </td> : <td className="px-6 py-4 text-sm">
-            <span className="inline-flex items-center rounded-full bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-700">
-              {m.role}
-            </span>
-          </td>}
-          
-        {admin &&
-          <td className="px-6 py-4 text-center">
-            <button onClick={()=>deleteMember({memberId:m.userId})} disabled={m.role == "admin"} className= {`text-sm font-medium ${m.role === "admin" ? "text-gray-400 cursor-not-allowed": " text-sm font-medium text-red-600 hover:text-red-700 hover:underline"}`}>
-              Remove
-            </button>
-          </td>
-         }
-            {admin && 
-          <td className="px-6 py-4 text-center">
-            <button disabled={m.role == "admin"} onClick={()=>promoteMember({memberId:m.userId})} className={`text-sm font-medium ${m.role === "admin" ? "text-gray-400 cursor-not-allowed": "text-green-600 hover:text-green-700 hover:underline"}`}>
-              Promote
-            </button>
-          </td>
-         }
-        </tr>
-      ))}
-    </tbody>
-  </table>
+  {/* List */}
+  <div className="space-y-2">
+    {members.map(m => (
+      <div
+        key={m.userId}
+        className="flex items-center justify-between px-3 py-3 rounded-lg hover:bg-slate-700/40 transition"
+      >
+
+        {/* LEFT */}
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-sm font-semibold">
+            {m.name[0]}
+          </div>
+
+          <div>
+            <p className="text-white text-sm font-medium">{m.name}</p>
+            <p className="text-slate-400 text-xs">{m.email}</p>
+          </div>
+        </div>
+
+        {/* RIGHT */}
+        <div className="flex items-center gap-4">
+
+          {/* Role */}
+          <span className={`text-xs px-2 py-1 rounded-md ${
+            m.role === "admin"
+              ? "bg-purple-500/10 text-purple-400"
+              : "bg-slate-600/30 text-slate-300"
+          }`}>
+            {m.role}
+          </span>
+
+          {/* Actions */}
+          {admin && (
+            <>
+              <button
+                disabled={m.role === "admin"}
+                onClick={() => deleteMember({ memberId: m.userId })}
+                className={`text-xs ${
+                  m.role === "admin"
+                    ? "text-slate-500 cursor-not-allowed"
+                    : "text-red-400 hover:text-red-300"
+                }`}
+              >
+                Remove
+              </button>
+
+              <button
+                disabled={m.role === "admin"}
+                onClick={() => promoteMember({ memberId: m.userId })}
+                className={`text-xs ${
+                  m.role === "admin"
+                    ? "text-slate-500 cursor-not-allowed"
+                    : "text-green-400 hover:text-green-300"
+                }`}
+              >
+                Promote
+              </button>
+            </>
+          )}
+
+        </div>
+      </div>
+    ))}
+  </div>
 </div>
 
 
 {(admin && invites.length > 0)&&(
-  <div>
-<p className="text-2xl font-semibold mb-4 text-center">Invites</p>
+  <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700 rounded-xl p-5 mt-6">
 
-<div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm  md:table-fixed  bg-white">
-  <table className="min-w-full border-collapse">
-    <thead className="bg-gray-50">
-      <tr>
-        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          Email
-        </th>
-        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          Invited By
-        </th>
-        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          Status
-        </th>
-        
-          <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          Expires At
-        </th>
+  {/* Header */}
+  <div className="flex justify-between items-center mb-5">
+    <h2 className="text-white text-lg font-semibold">Invites</h2>
+    <span className="text-slate-400 text-sm">{invites.length} pending</span>
+  </div>
 
-          <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          Remove Invite
-        </th>
+  {/* List */}
+  <div className="space-y-2">
+    {invites.map(m => (
+      <div
+        key={m._id}
+        className="flex items-center justify-between px-3 py-3 rounded-lg hover:bg-slate-700/40 transition"
+      >
 
-        
-        
-       
-      
-      </tr>
-    </thead>
+        {/* LEFT */}
+        <div>
+          <p className="text-white text-sm font-medium">{m.email}</p>
+          <p className="text-slate-400 text-xs">
+            Invited by {m.invitedBy.name}
+          </p>
+        </div>
 
-    <tbody className="divide-y divide-gray-200">
-      {invites.map(m => (
-        <tr
-          key={m._id}
-          className="hover:bg-gray-50 transition-colors"
-        >
-          <td className="px-6 py-4 text-sm font-medium text-gray-900">
-            {m.email}
-          </td>
+        {/* RIGHT */}
+        <div className="flex items-center gap-4">
 
-          <td className="px-6 py-4 text-sm text-gray-600">
-            {m.invitedBy.name}
-          </td>
+          {/* Status */}
+          <span className="text-xs px-2 py-1 rounded-md bg-yellow-500/10 text-yellow-400">
+            {m.status}
+          </span>
 
-           <td className="px-6 py-4 text-sm">
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
-              {m.status}
-            </span>
-          </td> 
-          <td className="px-6 py-4 text-sm text-gray-600">
+          {/* Expiry */}
+          <span className="text-xs text-slate-400">
             {new Date(m.expiresAt).toLocaleDateString()}
-          </td>
-           <td className="px-6 py-4 text-center">
-            <button  onClick={()=>removeInvite({inviteId:m._id})} className={`cursor-pointer text-sm font-medium ${ "text-red-600 hover:text-red-700 hover:underline"}`}>
-              Remove
-            </button>
-          </td>
-        
-          
-         
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div> 
+          </span>
+
+          {/* Remove */}
+          <button
+            onClick={() => removeInvite({ inviteId: m._id })}
+            className="text-xs text-red-400 hover:text-red-300"
+          >
+            Remove
+          </button>
+
+        </div>
+      </div>
+    ))}
+  </div>
+
 </div>)
 }
 

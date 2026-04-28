@@ -45,14 +45,14 @@ const Workspace = ({ workspaces }) => {
       {/* Trigger */}
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition"
+        className="flex items-center justify-between w-full px-3 py-2 rounded-md bg-[#111827] border-[#1F2937] hover:bg-[#1F2937] transition"
       >
         {active ? (
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-7 h-7 rounded bg-indigo-600 text-white flex items-center justify-center font-medium">
               {active.name[0]}
             </div>
-            <span className="truncate font-medium text-gray-800">
+            <span className="truncate font-medium text-[#E5E7EB]">
               {active.name}
             </span>
           </div>
@@ -61,7 +61,7 @@ const Workspace = ({ workspaces }) => {
         )}
 
         <svg
-          className={`w-4 h-4 text-gray-500 transition-transform ${
+          className={`w-4 h-4 text-[#9CA3AF] transition-transform ${
             open ? 'rotate-180' : ''
           }`}
           fill="none"
@@ -74,7 +74,7 @@ const Workspace = ({ workspaces }) => {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-30 mt-2 w-full rounded-md bg-white shadow-lg border">
+        <div className="absolute z-30 mt-2 w-full  bg-zinc-600 shadow-lg rounded-md">
           {workspaces.map((ws) => (
             <Link to={`/workspace/${ws.id}/home`}
               key={ws.id}
@@ -85,8 +85,8 @@ const Workspace = ({ workspaces }) => {
               className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition
                 ${
                   active && ws.id === active.id
-                    ? 'bg-indigo-50 text-indigo-600'
-                    : 'hover:bg-gray-100'
+                    ? 'bg-zinc-700 text-indigo-600'
+                    : 'hover:bg-zinc-800'
                 }
               `}
             >

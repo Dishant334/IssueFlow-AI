@@ -12,6 +12,7 @@ import {
 
 const DashboardMyTasks = ({openForm,onClose,setOpenForm}) => {
   const [data, setData] = useState([]);
+  const [loading,setLoading]=useState(false)
 
   const token = window.localStorage.getItem("token");
   const { workspaceid, projectId } = useParams();
@@ -24,6 +25,7 @@ const DashboardMyTasks = ({openForm,onClose,setOpenForm}) => {
 
 
   const fetchTasks = async () => {
+    setLoading(true)
     try {
       const response = await api.get(
         `/api/workspace/${workspaceid}/tasks`,
@@ -32,6 +34,8 @@ const DashboardMyTasks = ({openForm,onClose,setOpenForm}) => {
       setData(response.data.tasks);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Something Went Wrong");
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -123,23 +127,26 @@ const handleDragEnd = async (result) => {
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className="w-75 shrink-0 bg-gray-100 rounded-2xl p-4 flex flex-col max-h-[80vh] shadow-sm transition-all duration-200 hover:-translate-y-0.5"
+          className="w-75 shrink-0  rounded-2xl p-4 flex flex-col max-h-[80vh] shadow-sm transition-all duration-200 hover:-translate-y-0.5 bg-slate-800 border border-slate-700 "
         >
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <div>
-              <p className="text-sm font-semibold text-gray-700">{title}</p>
-              <p className="text-xs text-gray-400">
+              <p className="text-sm font-semibold text-slate-300">{title}</p>
+              <p className="text-xs text-slate-500">
                 {tasks.length} tasks
               </p>
             </div>
 
-            <button className="p-2 rounded-lg hover:bg-gray-200 transition">
-              <Icon size={16} />
+            <button className="p-2 rounded-lg hover:bg-gray-100 transition">
+              <Icon size={16} className='text-slate-100'/>
             </button>
           </div>
-
+          
           {/* Tasks */}
+          { loading ? <div className="flex justify-center ">
+            <div className="size-14 rounded-full border-6 border-slate-400 border-t-blue-500 animate-spin"></div>
+          </div> :
           <div className="flex flex-col gap-3 overflow-y-auto pr-1">
             {tasks.length === 0 ? (
               <p className="text-sm text-gray-400 text-center mt-6">
@@ -158,24 +165,24 @@ const handleDragEnd = async (result) => {
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
                       onClick={()=>setSingleTask(task._id)}
-                      className="relative group bg-white rounded-xl p-3 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
+                      className="relative group bg-slate-900 hover:bg-slate-800 rounded-xl p-3 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
                     >
-                      <p className="font-medium text-gray-800">
+                      <p className="font-medium text-sm text-slate-100">
                         {task.title}
                       </p>
 
                       {task.description && (
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">
                           {task.description}
                         </p>
                       )}
 
                       <div className="flex justify-between items-center mt-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold">
+                          <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold">
                             {task.assignedTo?.name?.charAt(0) || "U"}
                           </div>
-                          <p className="text-xs text-gray-600">
+                          <p className="text-xs text-slate-100">
                             {task.assignedTo?.name || "Unassigned"}
                           </p>
                         </div>
@@ -183,10 +190,10 @@ const handleDragEnd = async (result) => {
                         <span
                           className={`text-xs px-2 py-1 rounded-full font-medium ${
                             task.priority === "high"
-                              ? "bg-red-100 text-red-600"
+                              ? "bg-red-500/10 text-red-400"
                               : task.priority === "medium"
-                              ? "bg-yellow-100 text-yellow-600"
-                              : "bg-green-100 text-green-600"
+                              ? "bg-yellow-500/10 text-yellow-400"
+                              : "bg-green-500/10 text-green-400"
                           }`}
                         >
                           {task.priority}
@@ -199,7 +206,7 @@ const handleDragEnd = async (result) => {
               ))
             )}
           </div>
-
+      }
           {provided.placeholder}
         </div>
       )}
@@ -207,15 +214,14 @@ const handleDragEnd = async (result) => {
   )};
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">
-          My Tasks
-        </h1>
+    <div>
+      <div className='m-4'>
+        <p className='font-semibold text-3xl text-slate-100'>My Tasks</p>
+        <p className='text-sm text-slate-400 mt-1 max-w-md'>Manage and track your tasks</p>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex items-start gap-6 justify-evenly overflow-x-auto px-2 pb-4 scroll-smooth">
+        <div className="flex items-start gap-6 justify-evenly overflow-x-auto px-2 pb-4 scroll-smooth ">
           {renderColumn("TODO", todo, "todo",CheckSquare)}
           {renderColumn("IN PROGRESS", inProgress, "in_progress",Loader)}
           {renderColumn("DONE", done, "done",CheckCircle)}

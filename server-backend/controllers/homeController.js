@@ -35,7 +35,7 @@ const home = async (req, res) => {
       // Recent projects (limit 2)
       Project.find({ workspaceId: workspaceid })
         .sort({ createdAt: -1 })
-        .limit(2)
+        .limit(3)
     ]);
 
     return res.status(200).json({
