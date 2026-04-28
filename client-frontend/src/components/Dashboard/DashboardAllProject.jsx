@@ -56,7 +56,7 @@ const DashboardAllProject = () => {
   }
     if(allProject.length > 0){
   return (
-    <div className='relative flex-col items-center justify-center '>
+    <div className='flex-col items-center justify-center '>
       <div className='flex justify-between m-4'>
       <div >
         <p className='font-semibold text-3xl text-slate-100'>My Projects</p>
