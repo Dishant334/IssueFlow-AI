@@ -18,6 +18,7 @@ const Dashboar = () => {
   const [reload,setReload]=useState(false)
   const {workspaceid}=useParams()
   const token=localStorage.getItem('token')
+  const [model,setModel]=useState(false)
 
   const fetchData=async()=>{
     try{
@@ -26,6 +27,11 @@ const Dashboar = () => {
     }catch(err){
       toast.error(err?.response?.data?.message || 'Something went wrong')
     }
+}
+ const navigate=useNavigate()
+const handleLogout=()=>{
+  localStorage.removeItem('token')
+  navigate('/')
 }
 
 useEffect(()=>{fetchData()},[workspaceid])
@@ -83,19 +89,22 @@ useEffect(() =>{allWorkspaces()},[reload])
 
 
   return (
-    <div className='flex '>
+    <div className='relative flex '>
       {/*left sidebar*/}
-       <div className='w-1/7 min-h-screen bg-black px-4 h-screen sticky top-0'>
+       <div className='w-1/7 min-h-screen bg-black px-4 h-screen sticky top-0 '>
        {/*Name+Avatar*/}
-          <div className='flex  my-8 text-sm justify-center'>
+          <div onClick={()=>setModel((prev)=>!prev)}  className='flex cursor-pointer text-sm justify-center mt-8'>
             <div className='flex text-gray-300 font-semibold gap-1'>
              <div><p className='text-md bg-[#1E293B] text-[#3B82F6] px-1 rounded-xl'>{twoLetter(name)}</p></div>
              <h1 className='text-md'>{limitChars(name)}</h1>
-             <ChevronDown size={20} className='text-gray-300 cursor-pointer'/>
+             <ChevronDown size={20}  className='text-gray-300 cursor-pointer'/>
             </div>
           </div>
+          {model && <div className='absolute flex justify-center ml-10  mt-2 w-40 bg-[#1f2937]   border border-gray-700 overflow-hidden z-50  rounded-lg text-slate-100'>
+            <button onClick={handleLogout} className='w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500 hover:text-white transition duration-200'>Logout</button>
+            </div>}
         {/*Workspace*/}
-        <div className='text-white mb-8 px-4'>
+        <div className='text-white my-8 px-4'>
              <div className='flex justify-between px-2'><p className='text-sm text-[#9CA3Af]'>Workspaces</p> <button onClick={()=>setOpenForm(true)} className='transform transition-transform duration-300 hover:scale-125'><CirclePlus size={12} className='text-[#6B7280] hover:text-[#E5E7EB]'/></button></div>
             <Workspace workspaces={workspaces}/>
             </div>  

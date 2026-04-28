@@ -1,132 +1,95 @@
-import { useState } from 'react'
-import { useParams } from "react-router-dom";
-import api from '../../../configs/api'
-import toast from 'react-hot-toast'
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-const CreateProject = ({onclose,setRefresh}) => {
-  const [data,setData]=useState({
-    projectName:"",
-    projectDescription:""
-  })
-  const {workspaceid}=useParams()
-  const handleSubmit=async (e)=>{
-    const token=localStorage.getItem("token")
-    e.preventDefault()
-    try{
-        await api.post(`/api/workspace/${workspaceid}/projects`,{projectName: data.projectName,projectDesc: data.projectDescription},{headers:{Authorization:`Bearer ${token}`}})
-        toast.success('Created New Project Successfully')
-        setData({projectName:"",projectDescription:""})
-        setRefresh(p=>!p)
-        onclose()
-    }catch(err){
-        toast.error(err.response?.data?.message || "Something went wrong")
+const CreateProject = ({ onclose, setRefresh }) => {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!name) return;
+
+    try {
+      setLoading(true);
+
+      // 👉 API CALL HERE
+      // await api.post(...)
+
+      setRefresh((prev) => !prev);
+      onclose();
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
     }
-  }
-  const handleInput=(e)=>{
-    setData(prev=>({...prev, [e.target.name] : e.target.value}))
-  }
+  };
 
   return (
-           <div className="absolute inset-0 z-40 grid place-items-center " onClick={(e)=>e.stopPropagation()} >
-    
-    {/* Overlay */}
-    <div className="absolute inset-0 min-h-screen  bg-black/40 backdrop-blur-sm " onClick={onclose}  />
+    <AnimatePresence>
+      <div onClick={onclose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        
+        {/* Modal */}
+        <motion.div onClick={(e)=>e.stopPropagation()}
+          initial={{ opacity: 0, scale: 0.9, y: 40 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 40 }}
+          transition={{ duration: 0.25 }}
+          className="w-full max-w-md mx-4 bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-xl"
+        >
 
-    {/* Modal box */}
-  <div className="relative z-50 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-  
-  {/* Header */}
-  <div className="mb-6 text-center">
-    <h2 className="text-xl font-semibold text-gray-900">
-      Create A New Project
-    </h2>
-    <p className="mt-1 text-sm text-gray-500">
-      Enter their project name and description
-    </p>
-  </div>
+          {/* Header */}
+          <h2 className="text-xl font-semibold text-white">
+            Create New Project
+          </h2>
+          <p className="text-slate-400 text-sm mb-5">
+            Add details for your new project
+          </p>
 
-  {/* Form */}
-  <form onSubmit={handleSubmit}  className="flex flex-col gap-4">
-    
-    {/* Input */}
-    <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor="projectName"
-        className="text-sm font-medium text-gray-700"
-      >
-        Project Name
-      </label>
+          {/* Input */}
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Project name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2.5 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            />
 
-      <input
-        id="projectName"
-        type="text"
-        name="projectName"
-        value={data.projectName}
-        onChange={handleInput}
-        placeholder="Enter project name"
-        className="
-          rounded-xl border border-gray-300 px-4 py-2
-          text-sm text-gray-900
-          placeholder:text-gray-400
-          focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30
-          outline-none transition
-        "
-        required
-      />
-         <label
-        htmlFor="projectDescription"
-        className="text-sm font-medium text-gray-700"
-      >
-        Project Description
-      </label>
+            <textarea
+              placeholder="Project description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2.5 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            />
+          </div>
 
-      <textarea
-        id="projectDescription"
-        type="text"
-        name="projectDescription"
-        value={data.projectDescription}
-        onChange={handleInput}
-        placeholder="Enter project description"
-        className="
-          rounded-xl border border-gray-300 px-4 py-2
-          text-sm text-gray-900
-          placeholder:text-gray-400
-          focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30
-          outline-none transition
-        "
-      />
-    </div>
+          {/* Buttons */}
+          <div className="flex justify-end gap-3 mt-6">
 
-    {/* Actions */}
-    <div className="mt-4 flex items-center justify-end gap-3">
-      <button
-      onClick={onclose}
-        type="button"
-        className="
-          rounded-xl px-4 py-2 text-sm font-medium
-          text-gray-600 hover:bg-gray-100 transition
-        "
-      >
-        Cancel
-      </button>
+            <button
+              onClick={onclose}
+              className="px-4 py-2 text-slate-400 hover:text-white transition"
+            >
+              Cancel
+            </button>
 
-      <button
-        type="submit"
-        className="
-          rounded-xl bg-linear-to-tr from-purple-500 to-purple-700
-          px-5 py-2 text-sm font-medium text-white
-          shadow-md hover:shadow-lg
-          hover:brightness-110 transition
-        "
-      >
-       Create Project
-      </button>
-    </div>
-  </form>
-</div>
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition disabled:opacity-50"
+            >
+              {loading && (
+                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+              )}
+              {loading ? "Creating..." : "Create Project"}
+            </button>
 
-  </div>
-  )
-}
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};
 
-export default CreateProject
+export default CreateProject;

@@ -97,7 +97,7 @@ const DashboardMembers = () => {
 </div>
    }
   return (
-    <div   className='relative gap-6 items-center'>
+    <div   className=' gap-6 items-center'>
        <div className='m-4  flex justify-between'>
         <div>
         <p className='font-semibold text-3xl text-slate-100'>Workspace Members</p>
