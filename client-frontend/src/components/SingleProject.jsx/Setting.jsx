@@ -7,6 +7,7 @@ const Setting = () => {
   const {projectId,workspaceid}=useParams()
   const token=localStorage.getItem('token')
   const {singleProject,permissions}=useOutletContext()
+  const {loading}=useOutletContext()
     {/*Edit Project Details*/}
     const [editDetails,setEditDetails]=useState({name:'',desc:''})
     const handleSubmit=async(e)=>{
@@ -52,14 +53,19 @@ const Setting = () => {
       toast.error(err.response?.data?.message)
     }
   }
+   if(loading){
+      return  <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
+  <div className="w-10 h-10 border-4 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+</div>
+    }
   return (
-     <div className='p-6'>
+     <div className='p-6 mx-auto max-w-6xl'>
       <div className="flex justify-between items-center mb-4">
-    <p className='text-2xl font-semibold'>Project Settings</p>  
+    <p className='text-2xl font-semibold text-slate-100'>Project Settings</p>  
       </div>
 {permissions.canEditProject &&
  <div>
-  <p className="text-xl font-semibold text-gray-800 mx-4">
+  <p className="text-xl font-semibold text-gray-100 mx-4">
     Edit Project Details
   </p>
 
@@ -68,7 +74,7 @@ const Setting = () => {
   <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
     <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-600">
+      <label className="text-sm font-medium text-gray-100">
         Project Name
       </label>
       <input
@@ -81,7 +87,7 @@ const Setting = () => {
     </div>
 
     <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-600">
+      <label className="text-sm font-medium text-gray-100">
         Project Description
       </label>
       <textarea
@@ -101,7 +107,7 @@ const Setting = () => {
 
   </form>
 </div>
-    <hr className='my-8'/>
+    
     </div>
 }
 {permissions.canArchiveProject && 

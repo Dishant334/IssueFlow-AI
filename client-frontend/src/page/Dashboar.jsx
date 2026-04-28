@@ -1,20 +1,53 @@
 import React, { useEffect, useState } from 'react'
-import Navbar from '../components/Dashboard/Navbar'
 import { Link, Outlet, useLocation, useParams } from 'react-router-dom'
-import {CirclePlus, FolderKanban, House, StickyNote, User} from 'lucide-react'
+import {ChevronDown, CirclePlus, FolderKanban, House, StickyNote, User} from 'lucide-react'
 import Workspace from '../components/Dashboard/Workspace'
 import { addWorkspace, getWorkspaces } from '../apiHelper/workspace'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
+import api from '../../configs/api'
 
 
 const Dashboar = () => {
   const location=useLocation()
   const [title,setTitle]=useState('')
+  const [name,setName]=useState('')
   const isActive = (path) => location.pathname.includes(path)
   const [openForm,setOpenForm]=useState(false)
   const [workspaces,setWorkspaces]=useState([])
   const [reload,setReload]=useState(false)
+  const {workspaceid}=useParams()
+  const token=localStorage.getItem('token')
+
+  const fetchData=async()=>{
+    try{
+    const response=await api.get(`/api/workspace/${workspaceid}/details`,{headers:{Authorization:`Bearer ${token}`}})
+    setName(response.data.details.username)
+    }catch(err){
+      toast.error(err?.response?.data?.message || 'Something went wrong')
+    }
+}
+
+useEffect(()=>{fetchData()},[workspaceid])
+
+const limitChars = (text, limit = 5) => {
+    if(!text) return '';
+  
+  const words=text.split(' ');
+  return words[0]
+};
+
+const twoLetter=(text)=>{
+  if(!text) return '';
+  
+  const words=text.split(' ');
+  if(words.length==1){
+    return words[0].slice(0,2)
+  }else{
+    return words[0][0]+words[1][0]
+  }
+}
+
   {/*handling functions for new workspace form */}
   const handleNewWorkspaceInput=(e)=>{
     setTitle(e.target.value)
@@ -34,9 +67,8 @@ const Dashboar = () => {
     toast.error("Failed to add workspace");
   }
 };
-
-const inactiveState=" text-center  text-indigo-400  tracking-wider border-y border-indigo-500  px-4 py-1 transition-all duration-300  hover:text-white  hover:shadow-[0_0_25px_8px_rgba(99,102,241,0.8)]"
-const activeState="text-center border-y border-indigo-500  px-4 py-1  text-white  transition-all duration-300"
+const inactiveState = "flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-all duration-200"
+const activeState = "flex items-center gap-3 px-3 py-2 rounded-md text-sm bg-gray-800 text-white"
 
 const allWorkspaces=async()=>{
   try{
@@ -51,16 +83,20 @@ useEffect(() =>{allWorkspaces()},[reload])
 
 
   return (
-    <div className='flex gap-4'>
+    <div className='flex '>
       {/*left sidebar*/}
-       <div className='w-1/5 min-h-screen bg-slate-900'>
-       {/*Logo*/}
-          <div className='flex justify-center'>
-            <img src="/logo.png" className='h-32' alt="" />
+       <div className='w-1/7 min-h-screen bg-black px-4 h-screen sticky top-0'>
+       {/*Name+Avatar*/}
+          <div className='flex  my-8 text-sm justify-center'>
+            <div className='flex text-gray-300 font-semibold gap-1'>
+             <div><p className='text-md bg-[#1E293B] text-[#3B82F6] px-1 rounded-xl'>{twoLetter(name)}</p></div>
+             <h1 className='text-md'>{limitChars(name)}</h1>
+             <ChevronDown size={20} className='text-gray-300 cursor-pointer'/>
+            </div>
           </div>
         {/*Workspace*/}
         <div className='text-white mb-8 px-4'>
-             <div className='flex justify-between px-2'><p className='text-sm text-gray-500'>Workspaces</p> <button onClick={()=>setOpenForm(true)} className='transform transition-transform duration-300 hover:scale-125'><CirclePlus size={12}/></button></div>
+             <div className='flex justify-between px-2'><p className='text-sm text-[#9CA3Af]'>Workspaces</p> <button onClick={()=>setOpenForm(true)} className='transform transition-transform duration-300 hover:scale-125'><CirclePlus size={12} className='text-[#6B7280] hover:text-[#E5E7EB]'/></button></div>
             <Workspace workspaces={workspaces}/>
             </div>  
         {/*buttons*/}
@@ -73,8 +109,9 @@ useEffect(() =>{allWorkspaces()},[reload])
           </div>
        </div>
       {/*right content*/}
-      <div className='w-4/5 min-h-screen bg-slate-100'>
-      <Navbar/>
+      <div className='w-6/7 min-h-screen bg-[#0B1220]'>
+      
+      
        {openForm ? <div onClick={(e)=>setOpenForm(false)} className='fixed z-20 flex items-center justify-center min-h-3/4 min-w-3/4 backdrop:blur-md'>
 <form onSubmit={handleNewWorkspaceSubmit} onClick={(e)=>e.stopPropagation()} className=" flex flex-col w-96 p-8 rounded-2xl bg-white shadow-lg shadow-indigo-200/40 transition-all duration-300 hover:shadow-xl">
   <p className="text-center text-xl font-semibold text-indigo-600 mb-6">

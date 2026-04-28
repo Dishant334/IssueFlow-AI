@@ -13,13 +13,17 @@ const[email,setEmail]=useState('')
 const [workspaceName,setWorkspaceName]=useState('')
 const {workspaceid}=useParams()
 const token=localStorage.getItem('token')
+const [loading,setLoading]=useState(false)
 
 const fetchData=async()=>{
+  setLoading(true)
     try{
     const response=await api.get(`/api/workspace/${workspaceid}/details`,{headers:{Authorization:`Bearer ${token}`}})
     setDetail(response.data.details)
     }catch(err){
       toast.error(err?.response?.data?.message || 'Something went wrong')
+    }finally{
+      setLoading(false)
     }
 }
 const handleNameInput=(e)=>{
@@ -107,21 +111,25 @@ useEffect(() => {
 useEffect(()=>{fetchData()},[workspaceid])
 
 
-
+  if(loading){
+      return  <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
+  <div className="w-10 h-10 border-4 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+</div>
+   }
   return (
-    <div className='p-4'>
+    <div className='min-h-screen p-4 flex flex-col gap-8'>
       
       {/* Header */}
-      <p className='text-3xl font-semibold'>Settings</p>
-      <p className='text-sm text-gray-500 mt-1'>
-        Manage your workspace settings and members
-      </p>
+       <div className='m-4'>
+        <p className='font-semibold text-3xl text-slate-100'>Settings</p>
+        <p className='text-sm text-slate-400 mt-1 max-w-md'>Manage your workspace settings and members</p>
+      </div>
 
-      <div className='mt-4 space-y-8'>
+      <div className=' space-y-8'>
 
         {/* User Details */}
         <div>
-          <p className='text-lg font-semibold mb-4'>User Details</p>
+          <p className='text-lg text-slate-100 font-semibold mb-4'>User Details</p>
 
           <div className='flex items-end gap-10 flex-wrap'>
             
@@ -157,9 +165,9 @@ useEffect(()=>{fetchData()},[workspaceid])
         {/* Workspace Details */}
         <div>
           <div className='flex justify-between items-center'>
-            <h1 className='text-lg font-semibold'>Workspace Details</h1>
+            <h1 className='text-lg font-semibold text-slate-100'>Workspace Details</h1>
 
-            <div className='text-xs text-gray-500 text-right'>
+            <div className='text-xs text-gray-500 text-right mr-12'>
               <p>Created By: {detail.workspacecreating || '--'} </p>
               <p>Created On: {detail.workspacecreatedOn ||'--'}</p>
             </div>
@@ -186,7 +194,7 @@ useEffect(()=>{fetchData()},[workspaceid])
         </div>
 
         {/* Danger Zone */}
-        <div className='bg-red-50 border border-red-200 rounded-xl mx-10 p-8'>
+        <div className=' bg-red-50 border border-red-200 rounded-xl mx-10 p-8 '>
           
           {/* Header */}
           <div className="flex items-center gap-2">

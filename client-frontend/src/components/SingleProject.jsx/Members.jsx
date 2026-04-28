@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import {  useOutletContext } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 import AddMemberModal from "./AddMemberModal";
 
 const Members = () => {
-  const [isAddMember,setIsAddMember]=useState(false)
+  const [isAddMember, setIsAddMember] = useState(false);
+  const {loading}=useOutletContext()
 
-  const { singleProject,permissions } = useOutletContext();
-
-  const admin = permissions.canManageMembers; // replace later with role check
+  const { singleProject, permissions } = useOutletContext();
+  const admin = permissions.canManageMembers;
 
   const deleteMember = (memberId) => {
     console.log("remove member", memberId);
@@ -16,135 +16,120 @@ const Members = () => {
   const promoteMember = (memberId) => {
     console.log("promote member", memberId);
   };
+   if(loading){
+      return  <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
+  <div className="w-10 h-10 border-4 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+</div>
+    }
 
   return (
-    <div className="p-6 relative">
+    <div className="p-6 max-w-6xl mx-auto text-white">
 
-      <div className="flex justify-between items-center mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
         <p className="text-2xl font-semibold">Members</p>
 
         {admin && (
-          <button onClick={()=> setIsAddMember(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-            Add Member
+          <button
+            onClick={() => setIsAddMember(true)}
+            className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg transition shadow-md hover:scale-105"
+          >
+            + Add Member
           </button>
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm bg-white">
+      {/* Card Container */}
+      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-md overflow-hidden">
 
-        <table className="min-w-full border-collapse">
+        {/* Table Header */}
+        <div className="grid grid-cols-5 px-6 py-3 text-sm text-slate-400 border-b border-slate-700">
+          <p>Name</p>
+          <p>Joined</p>
+          <p>Role</p>
+          {admin && <p className="text-center">Remove</p>}
+          {admin && <p className="text-center">Promote</p>}
+        </div>
 
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase">
-                Name
-              </th>
+        {/* Members */}
+        {singleProject?.projectMembers?.map((m) => (
+          <div
+            key={m.userId}
+            className="grid grid-cols-5 items-center px-6 py-4 border-b border-slate-700 last:border-none hover:bg-slate-700/40 transition"
+          >
 
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase">
-                Joined
-              </th>
+            {/* Name + Avatar */}
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-sm font-semibold">
+                {m.name?.charAt(0)}
+              </div>
+              <p className="text-sm text-slate-200">{m.name}</p>
+            </div>
 
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase">
-                Role
-              </th>
+            {/* Joined */}
+            <p className="text-sm text-slate-400">
+              {new Date(m.joinedAt)
+                .toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+                .split(",")[0]}
+            </p>
 
-              {admin && (
-                <>
-                  <th className="px-6 py-3 text-center text-sm font-semibold text-gray-600 uppercase">
-                    Remove
-                  </th>
-
-                  <th className="px-6 py-3 text-center text-sm font-semibold text-gray-600 uppercase">
-                    Promote
-                  </th>
-                </>
-              )}
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-gray-200">
-
-            {singleProject?.projectMembers?.map((m) => (
-              <tr
-                key={m.userId}
-                className="hover:bg-gray-50 transition"
+            {/* Role */}
+            <div>
+              <span
+                className={`px-3 py-1 text-xs rounded-full font-medium ${
+                  m.role === "project_admin"
+                    ? "bg-purple-500/20 text-purple-400"
+                    : "bg-slate-700 text-slate-300"
+                }`}
               >
+                {m.role === "project_admin" ? "Admin" : "Member"}
+              </span>
+            </div>
 
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                  {m.name}
-                </td>
+            {/* Remove */}
+            {admin && (
+              <div className="text-center">
+                <button
+                  disabled={m.role === "project_admin"}
+                  onClick={() => deleteMember(m.userId)}
+                  className={`px-3 py-1 rounded-md text-xs transition ${
+                    m.role === "project_admin"
+                      ? "text-slate-500 cursor-not-allowed"
+                      : "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                  }`}
+                >
+                  Remove
+                </button>
+              </div>
+            )}
 
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {new Date(m.joinedAt)
-                    .toLocaleString("en-IN", {
-                      timeZone: "Asia/Kolkata",
-                    })
-                    .split(",")[0]}
-                </td>
-
-                <td className="px-6 py-4 text-sm">
-
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                      ${
-                        m.role === "project_admin"
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                  >
-                    {m.role}
-                  </span>
-
-                </td>
-
-                {admin && (
-                  <td className="px-6 py-4 text-center">
-
-                    <button
-                      disabled={m.role === "project_admin"}
-                      onClick={() => deleteMember(m.userId)}
-                      className={`text-sm font-medium
-                        ${
-                          m.role === "project_admin"
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-red-600 hover:text-red-700 hover:underline"
-                        }`}
-                    >
-                      Remove
-                    </button>
-
-                  </td>
-                )}
-
-                {admin && (
-                  <td className="px-6 py-4 text-center">
-
-                    <button
-                      disabled={m.role === "project_admin"}
-                      onClick={() => promoteMember(m.userId)}
-                      className={`text-sm font-medium
-                        ${
-                          m.role === "project_admin"
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-green-600 hover:text-green-700 hover:underline"
-                        }`}
-                    >
-                      Promote
-                    </button>
-
-                  </td>
-                )}
-
-              </tr>
-            ))}
-
-          </tbody>
-
-        </table>
-
+            {/* Promote */}
+            {admin && (
+              <div className="text-center">
+                <button
+                  disabled={m.role === "project_admin"}
+                  onClick={() => promoteMember(m.userId)}
+                  className={`px-3 py-1 rounded-md text-xs transition ${
+                    m.role === "project_admin"
+                      ? "text-slate-500 cursor-not-allowed"
+                      : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                  }`}
+                >
+                  Promote
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
-      {isAddMember && <AddMemberModal setIsAddMember={setIsAddMember} projectMembers={singleProject.projectMembers}/>}
 
+      {/* Modal */}
+      {isAddMember && (
+        <AddMemberModal
+          setIsAddMember={setIsAddMember}
+          projectMembers={singleProject.projectMembers}
+        />
+      )}
     </div>
   );
 };

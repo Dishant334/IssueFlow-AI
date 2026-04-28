@@ -19,6 +19,7 @@ import Overview from './components/SingleProject.jsx/Overview.jsx'
 import Setting from './components/SingleProject.jsx/Setting.jsx'
 import Members from './components/SingleProject.jsx/Members.jsx'
 import Tasks from './components/SingleProject.jsx/Tasks.jsx'
+import { Navigate } from 'react-router-dom'
 function App() {
   return (
     <>
@@ -31,12 +32,12 @@ function App() {
      <Route element={<ProtectedRoute/>}>
      <Route path='/createWorkspace' element={<CreateWorkspace/>}/>    
      <Route path='/workspace/:workspaceid' element={<Dashboar/>}>
-       <Route index element={<DashboardHome/>}/>
+       <Route index element={<Navigate to='home' replace/>}/>
        <Route path='home' element={<DashboardHome/>} />
        <Route path='tasks' element={<DashboardMyTasks/>}/>
        <Route path='projects' element={<DashboardAllProject/>}>
           <Route path=':projectId' element={<SingleProject/>}>
-              <Route index element={<Overview/>}/>
+              <Route index element={<Navigate to='projecto' replace/>}/>
               <Route path='projecto' element={<Overview/>}/>
               <Route path='projectt' element={<Tasks/>}/>
               <Route path='projectm' element={<Members/>}/>
