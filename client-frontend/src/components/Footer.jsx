@@ -58,15 +58,15 @@ const Footer = () => {
               Features
             </a>
 
-            <a href="https://www.instagram.com/" className="hover:text-white transition-colors">
+            <a href="https://www.instagram.com/ " target="_blank"  rel="noopener noreferrer" className="hover:text-white transition-colors">
               Instagram
             </a>
 
-            <a href="https://www.linkedin.com/in/dishant-kumar-codes/" className="hover:text-white transition-colors">
+            <a href="https://www.linkedin.com/in/dishant-kumar-codes/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
               LinkedIn
             </a>
 
-            <a href="https://github.com/Dishant334" className="hover:text-white transition-colors">
+            <a href="https://github.com/Dishant334" target="_blank"  rel="noopener noreferrer" className="hover:text-white transition-colors">
               GitHub
             </a>
           </motion.div>
