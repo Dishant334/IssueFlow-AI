@@ -35,15 +35,17 @@ function App() {
        <Route index element={<Navigate to='home' replace/>}/>
        <Route path='home' element={<DashboardHome/>} />
        <Route path='tasks' element={<DashboardMyTasks/>}/>
-       <Route path='projects' element={<DashboardAllProject/>}>
-          <Route path=':projectId' element={<SingleProject/>}>
-              <Route index element={<Navigate to='projecto' replace/>}/>
-              <Route path='projecto' element={<Overview/>}/>
-              <Route path='projectt' element={<Tasks/>}/>
-              <Route path='projectm' element={<Members/>}/>
-              <Route path='projectsset' element={<Setting/>}/>
-            </Route>
-       </Route>
+       <Route path="projects">
+
+  <Route index element={<DashboardAllProject />}/>
+
+  <Route path=":projectId" element={<SingleProject />}>
+    <Route index element={<Navigate to="projecto" replace />} />
+   <Route path="projecto" element={<Overview />} />
+    <Route  path="projectt" element={<Tasks />} />
+    <Route path="projectm" element={<Members />}/>
+    <Route path="projectsset" element={<Setting />}/></Route>
+</Route>
        <Route path='members' element={<DashboardMembers/>}/>
        <Route path='settings' element={<DashboardSettings/>}/>
      </Route>

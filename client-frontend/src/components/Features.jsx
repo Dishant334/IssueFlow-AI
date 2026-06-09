@@ -116,25 +116,40 @@ const Features = () => {
         className="flex flex-wrap items-center justify-center gap-6 md:gap-4 mt-4 px-6"
       >
         {featuresData.map((feature, index) => (
+<motion.div
+  key={index}
+  variants={{
+    hidden: { opacity: 0, y: 40 },
+    visible: { opacity: 1, y: 0 }
+  }}
+  className="group relative"
+>
+  {/* Glow Layer */}
+  <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-purple-500/0 via-purple-500/40 to-blue-500/0 opacity-0 blur-xl transition-all duration-500 group-hover:opacity-100"></div>
 
-          <motion.div
-            key={index}
-            variants={{
-              hidden: { opacity: 0, y: 40 },
-              visible: { opacity: 1, y: 0 }
-            }}
-            className={`hover:-translate-y-0.5 transition duration-300 ${index === 1 ? 'p-px rounded-[13px] bg-linear-to-br from-[#9544FF] to-[#223B60]' : ''}`}
-          >
-            <div className="p-6 rounded-xl space-y-4 border border-slate-800 bg-slate-700 max-w-80 w-full">
-              {feature.icon}
-              <h3 className="text-base font-medium text-white">
-                {feature.title}
-              </h3>
-              <p className="text-slate-400 line-clamp-2 pb-6">
-                {feature.description}
-              </p>
-            </div>
-          </motion.div>
+  {/* Card */}
+  <div className="relative p-6 rounded-xl space-y-4 border border-slate-200 bg-white max-w-80 w-full
+    transition-all duration-500
+    group-hover:-translate-y-2
+    group-hover:border-purple-300
+    group-hover:shadow-[0_20px_60px_-15px_rgba(139,92,246,0.35)]">
+
+    {/* Light Bloom */}
+    <div className="absolute inset-0 rounded-xl bg-radial-[circle_at_top] from-purple-100/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
+
+    <div className="relative z-10">
+      {feature.icon}
+
+      <h3 className="text-base font-medium text-slate-900">
+        {feature.title}
+      </h3>
+
+      <p className="text-slate-500 line-clamp-2 pb-6">
+        {feature.description}
+      </p>
+    </div>
+  </div>
+</motion.div>
 
         ))}
       </motion.div>
