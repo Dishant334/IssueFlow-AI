@@ -87,6 +87,15 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
     max-md:duration-300 flex items-center gap-8 md:gap-10 flex-1
     ${mobileOpen ? "max-md:w-full" : "max-md:w-0"}`}
   >
+
+    
+  {/* Close Button */}
+  <button
+    onClick={() => setMobileOpen(false)}
+    className="absolute top-6 right-6 md:hidden text-3xl text-gray-700"
+  >
+    ✕
+  </button>
     <button
       onClick={() => {
         setMobileOpen(false);
