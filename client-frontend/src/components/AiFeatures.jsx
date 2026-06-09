@@ -21,6 +21,7 @@ const features = [
         { name: "John Doe", time: "1h ago", avatar: "JD", text: "Yes, I noticed the same issue in staging environment." },
         { name: "Mike Johnson", time: "45m ago", avatar: "MJ", text: "Let's update the middleware logic to handle this edge case." },
       ],
+      summary: "Three engineers identified a token expiry bug causing inconsistent API responses in staging. Agreed fix: update middleware to handle the edge case gracefully.",
     },
   },
   {
@@ -84,12 +85,12 @@ function CommentsPreview({ data }) {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
-        <button className="text-slate-400 hover:text-slate-600 transition-colors">
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5 flex-wrap">
+        <button className="text-slate-400 hover:text-slate-600 transition-colors shrink-0">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15,18 9,12 15,6"/></svg>
         </button>
         <span className="text-sm font-semibold text-slate-700">Issue {data.issue}</span>
-        <div className="flex gap-4 ml-2">
+        <div className="flex gap-3 sm:gap-4 ml-0 sm:ml-2">
           {["Overview", "Comments", "Activity"].map((tab) => (
             <span key={tab} className={`text-xs font-medium pb-1 cursor-pointer transition-colors ${tab === "Comments" ? "text-violet-600 border-b-2 border-violet-500" : "text-slate-400 hover:text-slate-600"}`}>{tab}</span>
           ))}
@@ -100,12 +101,12 @@ function CommentsPreview({ data }) {
       <div className="flex-1 space-y-3 overflow-hidden">
         {data.comments.map((c, i) => (
           <motion.div key={i} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.15 }}
-            className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-linear-to-br from-violet-400 to-indigo-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">{c.avatar}</div>
-            <div className="flex-1 bg-slate-50 rounded-xl p-3">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs font-semibold text-slate-700">{c.name}</span>
-                <span className="text-[10px] text-slate-400">{c.time}</span>
+            className="flex gap-2 sm:gap-3">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-linear-to-br from-violet-400 to-indigo-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">{c.avatar}</div>
+            <div className="flex-1 bg-slate-50 rounded-xl p-2.5 sm:p-3 min-w-0">
+              <div className="flex justify-between items-center mb-1 gap-2">
+                <span className="text-xs font-semibold text-slate-700 truncate">{c.name}</span>
+                <span className="text-[10px] text-slate-400 shrink-0">{c.time}</span>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed">{c.text}</p>
             </div>
@@ -119,7 +120,7 @@ function CommentsPreview({ data }) {
           <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="mt-4 flex items-center gap-2 text-violet-500 text-xs font-medium">
             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-              className="w-3 h-3 border-2 border-violet-300 border-t-violet-600 rounded-full" />
+              className="w-3 h-3 border-2 border-violet-300 border-t-violet-600 rounded-full shrink-0" />
             AI is analyzing comments…
           </motion.div>
         ) : (
@@ -151,18 +152,18 @@ function DescriptionPreview({ data }) {
   }, [data.description]);
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full flex flex-col gap-3 sm:gap-4">
       <div>
         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Title</label>
         <div className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700">{data.title}</div>
       </div>
 
       <div className="flex-1">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Description</label>
           <span className="text-[10px] bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded-full font-semibold">✦ AI Generated</span>
         </div>
-        <div className="rounded-xl border border-violet-200 bg-violet-50/50 px-3 py-3 text-xs text-slate-600 leading-relaxed min-h-20">
+        <div className="rounded-xl border border-violet-200 bg-violet-50/50 px-3 py-3 text-xs text-slate-600 leading-relaxed min-h-16 sm:min-h-20">
           {typed}<motion.span animate={{ opacity: [1, 0] }} transition={{ repeat: Infinity, duration: 0.5 }} className="inline-block w-0.5 h-3 bg-violet-500 ml-0.5 align-middle" />
         </div>
       </div>
@@ -205,11 +206,15 @@ function PriorityPreview({ data }) {
     return () => clearTimeout(t);
   }, [data.confidence]);
 
-  const priorityColors = { High: { bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-600", dot: "bg-rose-500" }, Medium: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-600", dot: "bg-amber-500" }, Low: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-600", dot: "bg-emerald-500" } };
+  const priorityColors = {
+    High: { bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-600", dot: "bg-rose-500" },
+    Medium: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-600", dot: "bg-amber-500" },
+    Low: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-600", dot: "bg-emerald-500" }
+  };
   const pc = priorityColors[data.priority] || priorityColors.High;
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full flex flex-col gap-3 sm:gap-4">
       <div>
         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Title</label>
         <div className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700">{data.title}</div>
@@ -220,11 +225,11 @@ function PriorityPreview({ data }) {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-        className={`rounded-xl border ${pc.border} ${pc.bg} p-4`}>
+        className={`rounded-xl border ${pc.border} ${pc.bg} p-3 sm:p-4`}>
         <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Suggested Priority</div>
         <div className="flex items-center gap-2 mb-1">
           <div className={`w-2.5 h-2.5 rounded-full ${pc.dot}`} />
-          <span className={`text-lg font-bold ${pc.text}`}>{data.priority}</span>
+          <span className={`text-base sm:text-lg font-bold ${pc.text}`}>{data.priority}</span>
         </div>
         <p className="text-xs text-slate-500">{data.reasoning}</p>
       </motion.div>
@@ -252,19 +257,134 @@ function PriorityPreview({ data }) {
 export default function AiFeatures() {
   const [active, setActive] = useState(0);
   const sectionRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
   const sliderProgress = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
-  // Auto-advance on scroll
+  // Auto-advance on scroll (desktop only)
   useEffect(() => {
+    if (isMobile) return;
     const unsub = scrollYProgress.on("change", (v) => {
       if (v < 0.33) setActive(0);
       else if (v < 0.66) setActive(1);
       else setActive(2);
     });
     return unsub;
-  }, [scrollYProgress]);
+  }, [scrollYProgress, isMobile]);
 
+  // ── Mobile Layout (stacked, no sticky scroll magic) ──
+  if (isMobile) {
+    return (
+      <section className="my-10 bg-[#f8f7ff] px-4 py-10">
+        {/* Glow blobs */}
+        <div className="absolute left-1/2 -translate-x-1/2 w-64 h-64 bg-violet-300/20 rounded-full blur-[80px] pointer-events-none" />
+
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <p className="text-violet-600 text-sm font-bold tracking-[0.25em] uppercase mb-2">
+            AI Workflow Intelligence
+          </p>
+          <h2 className="text-2xl font-black text-slate-900 leading-tight">
+            Intelligent features that{" "}
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-violet-600 to-indigo-600">
+              understand your workflow
+            </span>
+          </h2>
+          <p className="text-slate-500 text-sm mt-2">
+            Our AI capabilities reduce manual effort, improve clarity, and help your team move faster.
+          </p>
+        </div>
+
+        {/* Tab selector */}
+        <div className="flex rounded-2xl bg-white border border-slate-200 p-1 gap-1 mb-6 shadow-sm">
+          {features.map((f, i) => (
+            <button
+              key={f.id}
+              onClick={() => setActive(i)}
+              className={`flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all duration-200 ${
+                active === i
+                  ? "bg-linear-to-r from-violet-600 to-indigo-600 text-white shadow-sm"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              {f.number}
+            </button>
+          ))}
+        </div>
+
+        {/* Active feature info */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`info-${active}`}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2 }}
+            className="mb-5"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-xl bg-violet-100 text-violet-600 shrink-0">
+                {features[active].icon}
+              </div>
+              <div>
+                <span className="text-[10px] font-black tracking-widest text-violet-500 block">
+                  {features[active].tag}
+                </span>
+                <h3 className="text-base font-bold text-slate-900">{features[active].title}</h3>
+              </div>
+            </div>
+            <p className="text-sm text-slate-500 leading-relaxed">{features[active].description}</p>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Preview panel */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`preview-${active}`}
+            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -12, scale: 0.98 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="bg-white rounded-3xl border border-slate-200 shadow-[0_8px_40px_-12px_rgba(109,40,217,0.15)] p-5 overflow-y-auto"
+            style={{ minHeight: 340 }}
+          >
+            {/* Mac-style dots */}
+            <div className="flex items-center gap-1.5 mb-4 pb-3 border-b border-slate-100">
+              <div className="w-3 h-3 rounded-full bg-rose-400" />
+              <div className="w-3 h-3 rounded-full bg-amber-400" />
+              <div className="w-3 h-3 rounded-full bg-emerald-400" />
+            </div>
+
+            {features[active].preview.type === "comments" && <CommentsPreview data={features[active].preview} />}
+            {features[active].preview.type === "description" && <DescriptionPreview data={features[active].preview} />}
+            {features[active].preview.type === "priority" && <PriorityPreview data={features[active].preview} />}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Dot nav */}
+        <div className="flex items-center justify-center gap-2 mt-5">
+          {features.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              className={`transition-all duration-300 rounded-full ${active === i ? "w-6 h-2 bg-violet-600" : "w-2 h-2 bg-slate-300 hover:bg-violet-300"}`}
+            />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  // ── Desktop Layout (original sticky scroll) ──
   return (
     <section ref={sectionRef} className="relative my-16 h-[600vh]">
       <div className="sticky top-0 h-screen overflow-visible bg-[#f8f7ff]">
@@ -279,18 +399,18 @@ export default function AiFeatures() {
         <div className="relative z-10 h-full flex flex-col px-8 md:px-16 py-10">
           {/* Section header */}
           <div className="mb-8 flex flex-col justify-center items-center">
-                     <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                       className="text-violet-600 text-3xl font-bold tracking-[0.3em] uppercase mb-2">
-                       AI Workflow Intelligence
-                     </motion.p>
-                     <h2 className="text-xg md:text-3xl font-black text-slate-900 leading-tight">
-                       Intelligent features that<br />
-                       <span className="text-transparent bg-clip-text bg-linear-to-r from-violet-600 to-indigo-600">understand your workflow</span>
-                     </h2>
-                     <p className="text-slate-500 text-sm mt-2 max-w-md">
-                       Our AI capabilities reduce manual effort, improve clarity, and help your team move faster.
-                     </p>
-                   </div>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="text-violet-600 text-3xl font-bold tracking-[0.3em] uppercase mb-2">
+              AI Workflow Intelligence
+            </motion.p>
+            <h2 className="text-xl md:text-3xl font-black text-slate-900 leading-tight text-center">
+              Intelligent features that<br />
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-violet-600 to-indigo-600">understand your workflow</span>
+            </h2>
+            <p className="text-slate-500 text-sm mt-2 max-w-md text-center">
+              Our AI capabilities reduce manual effort, improve clarity, and help your team move faster.
+            </p>
+          </div>
 
           {/* Main layout */}
           <div className="flex-1 grid grid-cols-5 gap-8 min-h-0">
@@ -300,7 +420,7 @@ export default function AiFeatures() {
 
               {/* Progress rail */}
               <div className="relative flex flex-col items-center py-2">
-                <div className="w-0.75 flex-1 bg-slate-200 rounded-full relative overflow-hidden">
+                <div className="w-0.5 flex-1 bg-slate-200 rounded-full relative overflow-hidden">
                   <motion.div className="absolute top-0 left-0 w-full bg-linear-to-b from-violet-500 to-indigo-600 rounded-full"
                     style={{ height: sliderProgress }} />
                 </div>
@@ -318,7 +438,7 @@ export default function AiFeatures() {
                           : "bg-white/50 border-transparent hover:bg-white/80"
                       }`}>
                       {/* Active indicator dot */}
-                      <div className="absolute -left-6.5 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                      <div className="absolute -left-6 top-1/2 -translate-y-1/2 flex items-center justify-center">
                         <div className={`w-4 h-4 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${
                           isActive ? "border-violet-600 bg-violet-600" : "border-slate-300 bg-white"
                         }`}>
@@ -369,7 +489,7 @@ export default function AiFeatures() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -16, scale: 0.97 }}
                   transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex-1  bg-white rounded-3xl  border  border-slate-200 shadow-[0_20px_80px_-20px_rgba(109,40,217,0.15)]  p-7  overflow-y-auto  custom-scrollbar">
+                  className="flex-1 bg-white rounded-3xl border border-slate-200 shadow-[0_20px_80px_-20px_rgba(109,40,217,0.15)] p-7 overflow-y-auto">
 
                   {/* Panel header */}
                   <div className="flex items-center gap-2 mb-5 pb-4 border-b border-slate-100">
@@ -378,19 +498,15 @@ export default function AiFeatures() {
                       <div className="w-3 h-3 rounded-full bg-amber-400" />
                       <div className="w-3 h-3 rounded-full bg-emerald-400" />
                     </div>
-                    <div className="flex-1 flex justify-center">
-                    
-                    </div>
                   </div>
 
-                  {/* Dynamic preview */}
                   {features[active].preview.type === "comments" && <CommentsPreview data={features[active].preview} />}
                   {features[active].preview.type === "description" && <DescriptionPreview data={features[active].preview} />}
                   {features[active].preview.type === "priority" && <PriorityPreview data={features[active].preview} />}
                 </motion.div>
               </AnimatePresence>
 
-              {/* Scroll hint */}
+              {/* Dot nav */}
               <div className="flex items-center justify-center gap-2 mt-4">
                 {features.map((_, i) => (
                   <button key={i} onClick={() => setActive(i)}
