@@ -1,11 +1,12 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { useState } from "react";
 
 const DemoVideo = () => {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
+
   const [videoError, setVideoError] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const isInView = useInView(containerRef, {
     amount: 0.6,
@@ -15,16 +16,31 @@ const DemoVideo = () => {
     if (!videoRef.current) return;
 
     if (isInView) {
-      videoRef.current.play().catch(() => {});
+      videoRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {});
     } else {
       videoRef.current.pause();
+      setIsPlaying(false);
     }
   }, [isInView]);
+
+  const toggleVideo = () => {
+    if (!videoRef.current) return;
+
+    if (videoRef.current.paused) {
+      videoRef.current.play();
+      setIsPlaying(true);
+    } else {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    }
+  };
 
   if (videoError) return null;
 
   return (
-
     <section className="relative overflow-hidden py-32 px-6">
       {/* Background Glow */}
       <div className="absolute inset-0 -z-10">
@@ -43,8 +59,8 @@ const DemoVideo = () => {
           </h2>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-500">
-            Watch how teams manage projects, collaborate in real-time,
-            and accelerate workflows using AI-powered features.
+            Watch how teams manage projects, collaborate in real-time, and
+            accelerate workflows using AI-powered features.
           </p>
         </div>
 
@@ -57,8 +73,9 @@ const DemoVideo = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
             className="
+              group
               overflow-hidden
-              rounded-[32px]
+              rounded-4xl
               border
               border-purple-100
               bg-white
@@ -70,11 +87,10 @@ const DemoVideo = () => {
               <div className="h-3 w-3 rounded-full bg-red-400" />
               <div className="h-3 w-3 rounded-full bg-yellow-400" />
               <div className="h-3 w-3 rounded-full bg-green-400" />
-
             </div>
 
             {/* Video */}
-            <div className="aspect-video">
+            <div className="relative aspect-video">
               <video
                 ref={videoRef}
                 className="h-full w-full object-cover"
@@ -82,10 +98,61 @@ const DemoVideo = () => {
                 playsInline
                 preload="metadata"
                 poster="/demo-thumbnail.png"
-                 onError={() => setVideoError(true)}
+                onError={() => setVideoError(true)}
               >
                 <source src="/demo.mp4" type="video/mp4" />
               </video>
+
+              {/* Gradient Overlay */}
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent" />
+
+              {/* Play / Pause Button */}
+              <button
+                onClick={toggleVideo}
+                className="
+                  absolute
+                  bottom-6
+                  right-6
+                  flex
+                  h-14
+                  w-14
+                  items-center
+                  justify-center
+                  rounded-full
+                  border
+                  border-white/20
+                  bg-black/50
+                  text-white
+                  backdrop-blur-md
+                  transition-all
+                  duration-300
+                  hover:scale-110
+                  hover:bg-black/70
+                  opacity-0
+                  group-hover:opacity-100
+                "
+                aria-label={isPlaying ? "Pause Video" : "Play Video"}
+              >
+                {isPlaying ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="h-6 w-6"
+                  >
+                    <path d="M6 4h4v16H6zM14 4h4v16h-4z" />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="h-6 w-6"
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                )}
+              </button>
             </div>
           </motion.div>
         </div>

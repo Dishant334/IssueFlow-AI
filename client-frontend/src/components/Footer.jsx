@@ -58,15 +58,15 @@ const Footer = () => {
               Features
             </a>
 
-            <a href="#" className="hover:text-white transition-colors">
+            <a href="https://www.instagram.com/" className="hover:text-white transition-colors">
               Instagram
             </a>
 
-            <a href="#" className="hover:text-white transition-colors">
+            <a href="https://www.linkedin.com/in/dishant-kumar-codes/" className="hover:text-white transition-colors">
               LinkedIn
             </a>
 
-            <a href="#" className="hover:text-white transition-colors">
+            <a href="https://github.com/Dishant334" className="hover:text-white transition-colors">
               GitHub
             </a>
           </motion.div>
