@@ -3,9 +3,10 @@ import { Server } from "socket.io";  // taking Server from socket.io
 let io;  //initializing a instance of Socket.io
 
 export const initSocket=(server)=>{
-io=new Server(server,{
+io = new Server(server,{
     cors:{
-        origin:'*'  //allow all frontend urls to connect
+        origin: process.env.HOST,
+        methods:["GET","POST"]
     }
 })
 
