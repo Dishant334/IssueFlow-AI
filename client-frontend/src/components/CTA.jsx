@@ -1,7 +1,12 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 
 const CTA = () => {
+  const navi=useNavigate()
+  const navigate=()=>{
+    navi('/register')
+  }
   return (
     <motion.div
     initial={{ opacity: 0, y: 40 }}
@@ -15,7 +20,7 @@ const CTA = () => {
         <p className='text-4xl cta-display font-extralight md:text-7xl text-amber-50 '>Plan. Track. Deliver.</p>
         <p className='text-4xl cta-display font-extralight md:text-7xl text-amber-50'>Ship Faster</p>
       </div>
-      <button className='cta-display px-3 py-1 rounded-md text-sm font-semibold bg-amber-50 mt-5 cursor-pointer  
+      <button onClick={navigate} className='cta-display px-3 py-1 rounded-md text-sm font-semibold bg-amber-50 mt-5 cursor-pointer  
     transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:shadow-lg hover:bg-white active:scale-95'>Get Started-It's Free</button>
     </motion.div>
   )
