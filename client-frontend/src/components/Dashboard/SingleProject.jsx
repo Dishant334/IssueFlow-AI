@@ -53,7 +53,6 @@ const SingleProject = () => {
         headers: { Authorization: `Bearer ${token}` }
       })
       navigate(`/workspace/${workspaceid}/projects`)
-      window.location.reload()
       toast.success(`Project ${status} successful`)
     } catch (err) {
       toast.error(err.response?.data?.message || "Something went wrong")

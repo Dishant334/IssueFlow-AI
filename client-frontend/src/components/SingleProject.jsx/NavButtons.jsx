@@ -32,7 +32,6 @@ const NavButtons = ({loading}) => {
 
         <Link
           to="projecto"
-          onClick={() => setProjectActive("overview")}
           className={`${baseStyle} ${
             location.pathname.includes("projecto") ? activeStyle : inactiveStyle
           }`}
@@ -42,7 +41,6 @@ const NavButtons = ({loading}) => {
 
         <Link
           to="projectt"
-          onClick={() => setProjectActive("projecttasks")}
           className={`${baseStyle} ${
             location.pathname.includes("projectt") ? activeStyle : inactiveStyle
           }`}
@@ -52,7 +50,6 @@ const NavButtons = ({loading}) => {
 
         <Link
           to="projectm"
-          onClick={() => setProjectActive("projectmembers")}
           className={`${baseStyle} ${
             location.pathname.includes("projectm")? activeStyle : inactiveStyle
           }`}
@@ -62,7 +59,6 @@ const NavButtons = ({loading}) => {
 
         <Link
           to="projectsset"
-          onClick={() => setProjectActive("projectsettings")}
           className={`${baseStyle} ${
             location.pathname.includes("projectsset")? activeStyle : inactiveStyle
           }`}

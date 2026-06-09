@@ -1,12 +1,26 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
 const Hero = ({scrollToFeatures,scrollToContact}) => {
   const [mobileOpen, setMobileOpen] = React.useState(false)
+  const [scrolled,setScrolled]=useState(false)
+
+ useEffect(() => {
+  const handleScroll = () => {
+    if (window.scrollY > 120 && !scrolled) {
+      setScrolled(true);
+    } else if (window.scrollY < 60 && scrolled) {
+      setScrolled(false);
+    }
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, [scrolled]);
 
   return (
-    <section className='relative flex flex-col items-center overflow-hidden bg-linear-to-b from-[#E0E7FF] via-[#F5F3FF] to-[#FAF5FF] px-4 py-4'>
+    <section className='relative flex flex-col items-center overflow-hidden bg-linear-to-b from-[#E0E7FF] via-[#F5F3FF] to-[#FAF5FF] px-4 py-4 pt-28'>
 
       {/*  Background Glow (back layer) */}
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_20%,rgba(124,58,237,0.15),transparent_60%)]"></div>
@@ -25,35 +39,111 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
 
       </div>
 
-      {/* Navbar */}
-      <nav className="flex items-center justify-between gap-8 bg-white/70 backdrop-blur-md border border-white/40 shadow-sm rounded-full px-4 md:px-2  w-full max-w-3xl z-2">
-        <Link to="/" className='flex items-center'>
-          <img src="logo.png" className='w-28' />
-        </Link>
+<motion.nav
+  animate={{
+    width: scrolled ? "88%" : "100%",
+    top: scrolled ? 16 : 0,
+    left: scrolled ? "50%" : "0%",
+    borderRadius: scrolled ? 999 : 0,
+    translateX: scrolled ? "-50%" : "0%"
+  }}
+  transition={{
+    type: "spring",
+    stiffness: 70,
+    damping: 18
+  }}
+  className={`fixed z-50 flex items-center justify-between border backdrop-blur-xl
+  ${
+    scrolled
+      ? "bg-white/10 border-white/20 px-6 py-3"
+      : "bg-transparent border-white/40 px-4 md:px-8 py-4"
+  }`}
+>
+  {/* Logo */}
+ <motion.div
+  animate={{
+    scale: scrolled ? 0.9 : 1
+  }}
+  transition={{ duration: 0.4 }}
+>
+  <Link to="/">
+    <img src="logo.png" className="w-12" />
+  </Link>
+</motion.div>
 
-        <div className='w-0.5 h-8 bg-gray-100 hidden md:flex'></div>
+  {/* Divider */}
+  <div
+    className={`w-px bg-gray-200 hidden md:flex transition-all duration-500 ${
+      scrolled ? "h-6" : "h-8"
+    }`}
+  />
 
-        <div className={`max-md:absolute max-md:bg-white/70 max-md:h-screen max-md:overflow-hidden max-md:transition-[width] max-md:duration-300 max-md:top-0 max-md:left-0 max-md:flex-col max-md:justify-center max-md:backdrop-blur flex items-center gap-8 z-50 md:gap-10 flex-1 ${mobileOpen ? 'max-md:w-full' : 'max-md:w-0'}`}>
-          <button onClick={() => {setMobileOpen(false)
-                                 scrollToFeatures()}} 
-        className="text-gray-600 hover:text-gray-800 text-sm">Features</button>
-          <Link to="/login" onClick={() => setMobileOpen(false)} className="text-gray-600 hover:text-gray-800 text-sm">Login</Link>
-          <Link to="/register" onClick={() => setMobileOpen(false)} className="text-gray-600 hover:text-gray-800 text-sm">Sign Up</Link>
-        <button onClick={() => {setMobileOpen(false)
-                                 scrollToContact()}}
-        className="text-gray-600 hover:text-gray-800 text-sm">Contact Us</button>
-        </div>
+  {/* Nav Links */}
+  <div
+    className={`max-md:absolute max-md:top-0 max-md:left-0 max-md:h-screen
+    max-md:bg-white/90 max-md:backdrop-blur-xl
+    max-md:flex-col max-md:justify-center
+    max-md:overflow-hidden max-md:transition-[width]
+    max-md:duration-300 flex items-center gap-8 md:gap-10 flex-1
+    ${mobileOpen ? "max-md:w-full" : "max-md:w-0"}`}
+  >
+    <button
+      onClick={() => {
+        setMobileOpen(false);
+        scrollToFeatures();
+      }}
+      className="text-gray-700 hover:text-violet-600 text-sm transition"
+    >
+      Features
+    </button>
 
-        <div className="flex items-center gap-2 md:pr-1">
-          <Link to="/register" className="hidden md:inline-block bg-violet-600 hover:bg-violet-700 text-white px-4 md:px-6 py-2 md:py-3 rounded-full text-xs md:text-sm transition-all duration-200 hover:scale-105 active:scale-95">
-            Get Started
-          </Link>
+    <Link
+      to="/login"
+      onClick={() => setMobileOpen(false)}
+      className="text-gray-700 hover:text-violet-600 text-sm transition"
+    >
+      Login
+    </Link>
 
-          <button onClick={() => setMobileOpen(true)} className="md:hidden text-gray-700 p-2 rounded-md">
-            ☰
-          </button>
-        </div>
-      </nav>
+    <Link
+      to="/register"
+      onClick={() => setMobileOpen(false)}
+      className="text-gray-700 hover:text-violet-600 text-sm transition"
+    >
+      Sign Up
+    </Link>
+
+    <button
+      onClick={() => {
+        setMobileOpen(false);
+        scrollToContact();
+      }}
+      className="text-gray-700 hover:text-violet-600 text-sm transition"
+    >
+      Contact Us
+    </button>
+  </div>
+
+  {/* CTA */}
+  <div className="flex items-center gap-2">
+    <Link
+      to="/register"
+      className={`hidden md:inline-block bg-violet-600 hover:bg-violet-700
+      text-white rounded-full text-sm transition-all duration-300
+      hover:scale-105 active:scale-95
+      ${scrolled ? "px-5 py-2" : "px-6 py-2.5"}`}
+    >
+      Get Started
+    </Link>
+
+    <button
+      onClick={() => setMobileOpen(true)}
+      className="md:hidden text-gray-700 p-2"
+    >
+      ☰
+    </button>
+  </div>
+</motion.nav>
 
       {/* Badge */}
       <motion.div
@@ -70,14 +160,42 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
       </motion.div>
 
       {/*  Heading */}
-      <motion.h1
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className='text-4xl md:text-[66px]/[1.2] text-center max-w-2xl mt-8 text-gray-800 leading-tight font-medium z-2'
-      >
-        Manage Projects. Track Issues. Ship Faster.
-      </motion.h1>
+    <motion.h1
+  initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
+  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+  transition={{ duration: 1, ease: "easeOut" }}
+  className="text-4xl md:text-[66px]/[1.1] text-center max-w-3xl mt-8 font-semibold z-2
+  bg-linear-to-r from-gray-900 via-violet-600 to-gray-900
+  bg-size-[200%_100%] bg-clip-text text-transparent
+  animate-gradient"
+>
+  <motion.span
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.2, duration: 0.7 }}
+    className="block"
+  >
+    Manage Projects.
+  </motion.span>
+
+  <motion.span
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.45, duration: 0.7 }}
+    className="block"
+  >
+    Track Issues.
+  </motion.span>
+
+  <motion.span
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.7, duration: 0.7 }}
+    className="block"
+  >
+    Ship Faster.
+  </motion.span>
+</motion.h1>
 
       {/* Description */}
       <motion.p

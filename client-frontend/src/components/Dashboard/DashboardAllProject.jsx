@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useEffect } from 'react'
 import toast from 'react-hot-toast'
 import api from '../../../configs/api'
-import { Link, Outlet, useParams } from 'react-router-dom'
+import { Link,  useParams } from 'react-router-dom'
 
 const DashboardAllProject = () => {
   const [openForm,setOpenForm]=useState(false)
@@ -34,6 +34,7 @@ const DashboardAllProject = () => {
     allProjects()
   },[refresh,workspaceid])
 
+
   useEffect(() => {
     if (openForm) {
       document.body.style.overflow = "hidden"
@@ -42,18 +43,6 @@ const DashboardAllProject = () => {
     }
   }, [openForm])
 
-  
-
-  const {projectId}=useParams()
-  if(projectId){
-    return (
-      < Outlet />)
-  }else{
-     if(loading){
-    return   <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
-  <div className="w-10 h-10 border-4 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
-</div>
-  }
     if(allProject.length > 0){
   return (
     <div className='flex-col items-center justify-center '>
@@ -73,7 +62,7 @@ const DashboardAllProject = () => {
           return (
            <Link
   key={p._id}
-  to={`/workspace/${workspaceid}/projects/${p._id}`}
+  to={`/workspace/${workspaceid}/projects/${p._id}/projecto`}
   className="
   group
   bg-slate-800/60 backdrop-blur-md
@@ -167,7 +156,7 @@ const DashboardAllProject = () => {
 </div>
     )
 }
-}
+
 }
 
 export default DashboardAllProject
