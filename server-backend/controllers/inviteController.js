@@ -64,7 +64,7 @@ const hashedToken = crypto
         expiresAt: new Date(Date.now()+7 * 24 * 60 * 60 * 1000)
      })
      const adminUser = await User.findById(userId)
-    const inviteLink = `${process.env.HOST}/invite/${rawToken}`
+    const inviteLink = `${process.env.CLIENT_URL}/invite/${rawToken}`
 
 
     await  sendInviteEmail({to:normalizeEmail, workspaceName:workspace.name,inviteLink:inviteLink,invitedByName:adminUser.name})
