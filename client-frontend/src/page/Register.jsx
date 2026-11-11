@@ -62,7 +62,7 @@ const Register = () => {
           <div className="absolute w-64 h-64 bg-indigo-400 opacity-30 rounded-full blur-md top-1/2 left-1/4"></div>
           <div className="absolute w-40 h-40 bg-gray-400 opacity-30 rounded-full blur-md top-5 right-1/4 "></div>
 
-        <div className='relative z-10 backdrop-blur-xl bg-white/40 border border-white/50 rounded-2xl p-8 shadow-xl min-h-84'>
+        <div className='relative z-10 backdrop-blur-xl bg-white/40 border border-white/50 rounded-2xl p-4 sm:p-8 shadow-xl min-h-84 w-full max-w-sm mx-4'>
              <form onSubmit={handleSubmit} action="" className='flex flex-col gap-10  p-4'>
                 <input type="text" className='w-full px-4 py-2 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition' placeholder='Username' name="name" value={register.name} onChange={handleInput}/>
                 <input type="email"  className='w-full px-4 py-2 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition' placeholder='Email' name="email" value={register.email} onChange={handleInput}/>
@@ -94,7 +94,7 @@ const Register = () => {
                            
                             
                
-                  <div className='flex justify-between gap-8'>
+                  <div className='flex flex-wrap items-center justify-between gap-4'>
                   <button type='submit' className='bg-blue-700 w-28 h-8 rounded-full cursor-pointer'>Sign Up</button>
                   <p>Already a member? <button type="button" onClick={toLogin} className='text-yellow-400 cursor-pointer'>Login</button></p>
                   </div>

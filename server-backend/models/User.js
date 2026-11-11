@@ -6,7 +6,9 @@ const UserSchema=new mongoose.Schema({
     email:{type:String,required:true,unique:true,lowercase:true,trim:true},
     password:{type:String,required:true},
     role:{type:String,default:"developer"},
-    refreshToken:{type:String,select:false}
+    refreshToken:{type:String,select:false},
+    resetPasswordToken:{type:String,select:false},     // sha256 of the token that was emailed
+    resetPasswordExpires:{type:Date,select:false}
 },{timestamps:true})
 
 UserSchema.methods.comparePassword=function(password){

@@ -78,7 +78,7 @@ const redirect=params.get('redirect')
            <div className="absolute w-40 h-40 bg-gray-400 opacity-30 rounded-full blur-md top-5 right-1/4 "></div>
 
           {/*glass card*/}
-        <div className='relative z-10 backdrop-blur-xl bg-white/40 border border-white/50 rounded-2xl p-8 shadow-xl min-h-64'>
+        <div className='relative z-10 backdrop-blur-xl bg-white/40 border border-white/50 rounded-2xl p-4 sm:p-8 shadow-xl min-h-64 w-full max-w-sm mx-4'>
              <form onSubmit={handleSubmit} action="" className='flex flex-col gap-10  p-4'>
                <div className="flex flex-col gap-6">
 
@@ -112,9 +112,14 @@ const redirect=params.get('redirect')
            {showPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
            </button>
              </div>
+
+           {/* Forgot password */}
+           <div className='flex justify-end -mt-3'>
+             <button type='button' onClick={()=>navigate('/forgot-password')} className='text-sm text-blue-800 hover:underline cursor-pointer'>Forgot password?</button>
+           </div>
  
             </div>
-                  <div className='flex justify-between gap-8'>
+                  <div className='flex flex-wrap items-center justify-between gap-4'>
                   <button type='submit' className='bg-blue-700 w-28 h-8 rounded-full cursor-pointer'>Login</button>
                   <p>Not a member? <button type='button' onClick={toRegister} className='text-yellow-400 cursor-pointer'>Sign Up</button></p>
                   </div>

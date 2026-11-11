@@ -2,6 +2,8 @@ import bcrypt from "bcrypt"
 import User from "../models/User.js"
 import jwt from 'jsonwebtoken'
 import { sendError } from "../utils/handleError.js"
+import crypto from "node:crypto"
+import { sendResetPasswordEmail } from "../services/emailServices.js"
 
 const generateToken= (userId,role)=>{
     return jwt.sign({userId,role},process.env.JWT_SECRET,{expiresIn:'15m'})
@@ -102,5 +104,76 @@ export const logoutUser=async(req,res)=>{
     return res.status(200).json({message:"Logged out"})
     }catch(err){
         return res.status(500).json({message:"Internal error"})
+    }
+}
+
+const RESET_VALID_MS = 60 * 60 * 1000      // a reset link works for 1 hour
+const RESET_COOLDOWN_MS = 60 * 1000        // and a new one can be asked once a minute
+
+// :POST /api/users/forgot-password
+export const forgotPassword=async(req,res)=>{
+    try{
+    const email=req.body.email?.toString().toLowerCase().trim()
+    if(!email) return res.status(400).json({message:"Enter your email"})
+
+    // the answer is the same whether the email exists or not, so nobody can find out who has an account
+    const sameAnswer={message:"If an account with this email exists, we have sent a reset link to it"}
+
+    const user=await User.findOne({email}).collation({locale:'en',strength:2}).select("+resetPasswordExpires")
+    if(!user) return res.status(200).json(sameAnswer)
+
+    // a link was sent less than a minute ago: do not send another mail
+    const lastSentAt=user.resetPasswordExpires ? user.resetPasswordExpires.getTime()-RESET_VALID_MS : 0
+    if(Date.now()-lastSentAt<RESET_COOLDOWN_MS) return res.status(200).json(sameAnswer)
+
+    // only the hash is saved, the real token only exists in the email
+    const rawToken=crypto.randomBytes(32).toString("hex")
+    user.resetPasswordToken=crypto.createHash("sha256").update(rawToken).digest("hex")
+    user.resetPasswordExpires=new Date(Date.now()+RESET_VALID_MS)
+    await user.save()
+
+    const resetLink=`${process.env.CLIENT_URL}/reset-password/${rawToken}`
+    try{
+        await sendResetPasswordEmail({to:user.email,name:user.name,resetLink})
+    }catch(mailErr){
+        // the mail did not go out, so the link is useless: remove it (the error is in the log)
+        user.resetPasswordToken=undefined
+        user.resetPasswordExpires=undefined
+        await user.save()
+    }
+
+    return res.status(200).json(sameAnswer)
+    }catch(err){
+        return sendError(res,err)
+    }
+}
+
+// :POST /api/users/reset-password/:token
+export const resetPassword=async(req,res)=>{
+    try{
+    const {token}=req.params
+    const {password}=req.body
+
+    if(!password || typeof password!=="string" || password.length<6){
+        return res.status(400).json({message:"Password must be at least 6 characters"})
+    }
+
+    const hashedToken=crypto.createHash("sha256").update(token).digest("hex")
+    const user=await User.findOne({
+        resetPasswordToken:hashedToken,
+        resetPasswordExpires:{$gt:new Date()},
+    }).select("+resetPasswordToken +resetPasswordExpires +refreshToken")
+
+    if(!user) return res.status(400).json({message:"This reset link is invalid or has expired"})
+
+    user.password=await bcrypt.hash(password,10)
+    user.resetPasswordToken=undefined       // the link works only once
+    user.resetPasswordExpires=undefined
+    user.refreshToken=undefined             // everyone who was logged in with the old password is logged out
+    await user.save()
+
+    return res.status(200).json({message:"Password updated. You can log in now"})
+    }catch(err){
+        return sendError(res,err)
     }
 }

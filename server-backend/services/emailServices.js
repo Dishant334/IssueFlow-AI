@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { generateInviteTemplate, generateInviteText } from "../template/inviteTemplate.js";
+import { generateResetPasswordTemplate, generateResetPasswordText } from "../template/resetPasswordTemplate.js";
 
 
 const transporter = nodemailer.createTransport({
@@ -42,5 +43,23 @@ export const sendInviteEmail = async ({
   } catch (error) {
     console.error("Email sending failed:", error.code, error.responseCode, error.message);
     throw new Error("Failed to send invite email");
+  }
+};
+
+
+export const sendResetPasswordEmail = async ({ to, name, resetLink }) => {
+  try {
+    const mailOptions = {
+      from: `"IssueFlow AI Team" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: "Reset your IssueFlow password",
+      text: generateResetPasswordText({ name, resetLink }),
+      html: generateResetPasswordTemplate({ name, resetLink }),
+    };
+
+    return await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error("Reset password email failed:", error.code, error.responseCode, error.message);
+    throw new Error("Failed to send reset password email");
   }
 };

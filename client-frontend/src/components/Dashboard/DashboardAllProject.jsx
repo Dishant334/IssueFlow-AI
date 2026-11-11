@@ -46,13 +46,13 @@ const DashboardAllProject = () => {
     if(allProject.length > 0){
   return (
     <div className='flex-col items-center justify-center '>
-      <div className='flex justify-between m-4'>
+      <div className='flex flex-wrap justify-between gap-3 m-4'>
       <div >
         <p className='font-semibold text-3xl text-slate-100'>My Projects</p>
         <p className='text-sm text-slate-400 mt-1 max-w-md'>Manage and organise your projects</p>
       </div>
      <div className='flex'>
-      <button className='py-2 px-4 mr-8 cursor-pointer bg-blue-500/10 text-blue-400 border border-blue0500/30 hover:bg-blue-500/20 transition-all duration-200 rounded-xl' onClick={()=>NewPojectForm()}>Add New Project</button>
+      <button className='py-2 px-4 sm:mr-8 cursor-pointer bg-blue-500/10 text-blue-400 border border-blue0500/30 hover:bg-blue-500/20 transition-all duration-200 rounded-xl' onClick={()=>NewPojectForm()}>Add New Project</button>
      </div>
      </div>
      <div>

@@ -61,9 +61,9 @@ if (error) return <Error title={inviteData?.message || "Invalid Invitation"} mes
 
 return (
   <div className='min-h-screen items-center flex bg-linear-to-tr from-gray-500 to-gray-800'>
-    <div className='mx-auto border-4 p-8 rounded-2xl flex flex-col items-center gap-2'>
-        <p className='text-3xl my-4'>You're invited to join : {inviteData.workspaceName}</p>
-        <div className='flex text-lg my-4'>
+    <div className='mx-4 sm:mx-auto border-4 p-5 sm:p-8 rounded-2xl flex flex-col items-center gap-2'>
+        <p className='text-xl sm:text-3xl text-center my-4'>You're invited to join : {inviteData.workspaceName}</p>
+        <div className='flex flex-wrap justify-center gap-1 text-lg my-4'>
          <p> Invited email : </p><p className='underline'>{inviteData.inviteemail}</p>
         </div>
 

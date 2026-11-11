@@ -67,7 +67,7 @@ const SingleProject = () => {
     <div>
 
       {/* Project Header */}
-      <div className="bg-slate-900 rounded-xl border-b border-slate-700 px-12 py-4 flex justify-between items-start shadow-md">
+      <div className="bg-slate-900 rounded-xl border-b border-slate-700 px-4 sm:px-12 py-4 flex flex-col gap-4 sm:flex-row justify-between sm:items-start shadow-md">
 
         {loading ? (
           <>
@@ -85,7 +85,7 @@ const SingleProject = () => {
           <>
             {/* LEFT SIDE */}
             <div className="space-y-2">
-              <p className="text-3xl font-semibold text-slate-100">
+              <p className="text-2xl sm:text-3xl font-semibold text-slate-100">
                 {singleProject.projectName}
               </p>
 
