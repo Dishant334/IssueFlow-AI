@@ -38,6 +38,7 @@ const redirect=params.get('redirect')
     toast.success('Login Successful');
     setLogin({ email: '', password: '' });
     localStorage.setItem("token", res.data.token);
+    localStorage.setItem("refreshToken", res.data.refreshToken);
 
   
 
