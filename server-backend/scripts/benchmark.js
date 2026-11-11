@@ -40,7 +40,7 @@ const timed = async (path) => {
 
 const json = async (path) => (await fetch(base + path, { headers: { Authorization: `Bearer ${token}` } })).json()
 const percentile = (sorted, p) => sorted[Math.min(Math.ceil((p / 100) * sorted.length) - 1, sorted.length - 1)]
-const round = (n) => (n < 10 ? n.toFixed(1) : Math.round(n)).toString().padStart(6)
+const round = (n) => (n < 10 ? n.toFixed(1) : Math.round(n)).toString().padStart(8)
 
 // ---------- login and find something to measure
 const login = await fetch(`${base}/api/users/login`, {
@@ -114,10 +114,10 @@ const row = (name, list, mark = "") => {
 }
 console.log(`\nAPI: ${base}   (${requests} requests, ${rounds} rounds, ${blocked} waited for the rate limit)`)
 console.log("times in milliseconds\n")
-console.log(`${"endpoint".padEnd(22)}${"first".padStart(6)}${"median".padStart(6)}${"p95".padStart(6)}${"max".padStart(6)}`)
-console.log("-".repeat(52))
+console.log(`${"endpoint".padEnd(22)}${"first".padStart(8)}${"median".padStart(8)}${"p95".padStart(8)}${"max".padStart(8)}`)
+console.log("-".repeat(54))
 endpoints.forEach(([name, , mark]) => row(name, times.get(name), mark ? "<- cached" : ""))
-console.log("-".repeat(52))
+console.log("-".repeat(54))
 console.log("whole pages (several requests at once)")
 flows.forEach(([name]) => row(name, flowTimes.get(name)))
 console.log('\n"first" = the very first request (an empty cache). "median" and "p95" = the later ones.')
