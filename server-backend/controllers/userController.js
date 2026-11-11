@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import { sendError } from "../utils/handleError.js"
 import crypto from "node:crypto"
 import { sendResetPasswordEmail } from "../services/emailServices.js"
+import { clearLoginFailures, recordLoginFailure } from "../authMiddleWare/rateLimit.js"
 
 const generateToken= (userId,role)=>{
     return jwt.sign({userId,role},process.env.JWT_SECRET,{expiresIn:'15m'})
@@ -53,14 +54,20 @@ export const loginUser=async(req,res)=>{
 
      const user=await User.findOne({email}).collation({locale:'en',strength:2})   //finds older accounts saved with capital letters too
 
-        if(!user) return res.status(400).json({message:"User not found"})
+        if(!user){
+          await recordLoginFailure(req)
+          return res.status(400).json({message:"User not found"})
+        }
      
      
 
     const isMatch = await user.comparePassword(password);
 if (!isMatch) {
+  await recordLoginFailure(req)
   return res.status(401).json({ message: "Invalid password or email" });
 }
+
+     await clearLoginFailures(req)   //a correct login starts the count again
 
 
      const token=generateToken(user._id,user.role)

@@ -14,6 +14,9 @@ import commentRoute from './routes/commentRoute.js'
 import { initSocket } from './services/socketServices.js'
 import aiRoute from './routes/aiRoutes.js'
 import Invitation from './models/Invitation.js'
+import RateLimit from './models/RateLimit.js'
+import { generalLimit } from './authMiddleWare/rateLimit.js'
+import { trustProxyHops } from './config/rateLimits.js'
 
 // the server cannot work without these, so it stops right at the start with a clear message
 const required=['MONGO_URI','JWT_SECRET','JWT_REFRESH_SECRET']
@@ -30,8 +33,14 @@ if(notSet.length>0) console.warn(`Environment variables not set (some features w
 const app=express()
 const port=process.env.PORT || 7001
 
+// Render (and most hosts) put a proxy in front of the server. Without this every user would look like the proxy's ip
+// and all of them would share one rate limit. TRUST_PROXY = how many proxies are in front (1 on Render).
+app.set('trust proxy',trustProxyHops)
+
 app.use(express.json()) //to parse data to JSON format
-app.use(cors())
+// the browser may read these headers of a rate limit answer (it needs this for another origin, like the Vercel site)
+app.use(cors({exposedHeaders:['Retry-After','RateLimit-Limit','RateLimit-Remaining','RateLimit-Reset']}))
+app.use('/api',generalLimit)
 app.use('/api/users',userRouter)
 app.use('/api',workspaceRouter)
 app.use('/api',inviteRouter)
@@ -67,8 +76,9 @@ await connectDB();
 // the old index of the invitations (workspace + email + status) is replaced by the one in the model
 try{
     await Invitation.syncIndexes()
+    await RateLimit.createIndexes()    // the counters of the rate limits remove themselves when their time is over
 }catch(err){
-    console.error("Could not update the invitation indexes:",err.message)
+    console.error("Could not update the indexes:",err.message)
 }
 
 const server = app.listen(port,()=>{

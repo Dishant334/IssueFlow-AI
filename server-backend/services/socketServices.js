@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import { Task } from "../models/Tasks.js";
 import Workspace from "../models/Workspace.js";
 import Project from "../models/Projects.js";
+import { limiters } from "./rateLimiters.js";
+import { socketIp } from "../utils/clientIp.js";
 
 let io;  //initializing a instance of Socket.io
 
@@ -29,6 +31,17 @@ io = new Server(server,{
     }
 })
 
+// too many new connections from one ip
+io.use(async (socket,next)=>{
+  try{
+    const result = await limiters.socketConnectPerIp.consume(socketIp(socket))
+    if(!result.allowed) return next(new Error("Too many connections"))
+  }catch(err){
+    console.error("socket rate limit error, connection allowed:",err.message)
+  }
+  next()
+})
+
 // only logged in users can connect (the frontend sends its access token when it connects)
 io.use((socket,next)=>{
   try{
@@ -47,6 +60,8 @@ io.on('connection',(socket)=>{  //connection event runs when a new user connects
   //join task room, only if the user is allowed to open that task
   socket.on('joinTask',async (taskId)=>{   // task act as a room
     try{
+      // every join does database lookups, so one socket cannot join without limit
+      if(!(await limiters.socketJoinPerSocket.consume(socket.id)).allowed) return
       if(!mongoose.isValidObjectId(taskId)) return
       if(await canOpenTask(socket.data.userId,taskId)) socket.join(taskId.toString())
     }catch(err){
