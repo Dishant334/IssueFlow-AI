@@ -1,24 +1,37 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import api from "../../../configs/api";
 
 const CreateProject = ({ onclose, setRefresh }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const { workspaceid } = useParams();
 
   const handleSubmit = async () => {
-    if (!name) return;
+    if (!name.trim()) {
+      toast.error("Please fill the project name");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
 
     try {
       setLoading(true);
 
-      // 👉 API CALL HERE
-      // await api.post(...)
+      await api.post(
+        `/api/workspace/${workspaceid}/projects`,
+        { projectName: name, projectDesc: description },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
+      toast.success("Created New Project Successfully");
       setRefresh((prev) => !prev);
       onclose();
     } catch (err) {
-      console.log(err);
+      toast.error(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -56,7 +69,8 @@ const CreateProject = ({ onclose, setRefresh }) => {
             />
 
             <textarea
-              placeholder="Project description"
+              placeholder="Project description (max 40 characters)"
+              maxLength={40}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}

@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
-const AddTaskForm = ({ onClose, fetchTasks }) => {
+const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
   const { workspaceid, projectId } = useParams();
   const token = localStorage.getItem("token");
 
@@ -14,7 +14,7 @@ const AddTaskForm = ({ onClose, fetchTasks }) => {
   const [data, setData] = useState({
     title: "",
     description: "",
-    status: "",
+    status: defaultStatus,
     priority: "",
     assignedTo: "",
   });

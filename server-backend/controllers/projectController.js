@@ -76,7 +76,7 @@ const getproject = async (req, res) => {
     if(!workspaces) return res.status(404).json({message:"Workspace not dound"})
     const member = workspaces.members.find(m=>m.user.toString() === userId.toString())
     if(!member) return res.status(403).json({message:"Member not found in Workspace"})
-    if(member.role != 'admin') return res.status(403).json("You cannot create new project")
+    if(member.role != 'admin') return res.status(403).json({message:"You cannot create new project"})
 
         await Project.create({
       workspaceId:workspaceid,
