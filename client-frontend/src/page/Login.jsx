@@ -14,7 +14,7 @@ const redirect=params.get('redirect')
   
 
       const [login,setLogin]=useState({
-        email:'',
+        email:location.state?.email || '',
         password:''
     })
 
@@ -66,7 +66,7 @@ const redirect=params.get('redirect')
     }
    
     const toRegister=()=>{
-       navigate('/register') 
+       navigate(redirect ? `/register?redirect=${redirect}` : '/register')
     }
   return (
 <div className='relative min-h-screen flex items-center justify-center bg-[#e6ecf3] overflow-hidden'>

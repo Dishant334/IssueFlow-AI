@@ -1,6 +1,6 @@
 import api from '../../configs/api'
 import React, { useState } from 'react'
-import {  useNavigate } from 'react-router-dom'
+import {  useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {EyeClosed,Eye} from 'lucide-react';
 
@@ -9,6 +9,10 @@ import {EyeClosed,Eye} from 'lucide-react';
 
 const Register = () => {
       const navigate=useNavigate()
+      const location=useLocation()
+      const params=new URLSearchParams(location.search)
+      const redirect=params.get('redirect')
+      const loginPath=redirect ? `/login?redirect=${redirect}` : '/login'
 
     const [register,setRegister]=useState({
     name:'',
@@ -34,9 +38,9 @@ const Register = () => {
             .then(()=>{
                toast.success("SignUp Sucess Login Now")
                setRegister({...register,name:'',email:'',password:''})
-                navigate('/login')     
+                navigate(loginPath,{state:{email:register.email}})
             }).catch((err)=>{
-               toast.error("Something went wrong")
+               toast.error(err.response?.data?.message || "Something went wrong")
             })
 
     }
@@ -48,7 +52,7 @@ const Register = () => {
 
   
     const toLogin=()=>{
-       navigate('/login') 
+       navigate(loginPath)
     }
   return (
     <div className='relative min-h-screen flex items-center justify-center bg-[#e6ecf3] overflow-hidden'>
