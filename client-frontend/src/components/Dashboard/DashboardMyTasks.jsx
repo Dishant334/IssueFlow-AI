@@ -8,50 +8,7 @@ import {
   Droppable,
   Draggable,
 } from "@hello-pangea/dnd";
-
-// priority pill
-const priorityStyle = {
-  high: { label: "High", pill: "bg-red-500/15 text-red-300" },
-  medium: { label: "Medium", pill: "bg-amber-500/15 text-amber-300" },
-  low: { label: "Low", pill: "bg-indigo-500/15 text-indigo-300" },
-};
-
-// column dot + the status chip shown on every card
-const columnStyle = {
-  todo: {
-    dot: "bg-orange-400",
-    chipDot: "bg-indigo-400",
-    chip: "bg-indigo-500/10 text-indigo-300",
-    chipLabel: "Not Started",
-    over: "bg-orange-400/5 ring-orange-400/30",
-  },
-  in_progress: {
-    dot: "bg-blue-400",
-    chipDot: "bg-amber-400",
-    chip: "bg-amber-500/10 text-amber-300",
-    chipLabel: "In Progress",
-    over: "bg-blue-400/5 ring-blue-400/30",
-  },
-  done: {
-    dot: "bg-pink-400",
-    chipDot: "bg-emerald-400",
-    chip: "bg-emerald-500/10 text-emerald-300",
-    chipLabel: "Complete",
-    over: "bg-pink-400/5 ring-pink-400/30",
-  },
-};
-
-// every user gets the same gradient avatar
-const avatarColors = [
-  "from-blue-500 to-indigo-500",
-  "from-emerald-500 to-teal-500",
-  "from-pink-500 to-rose-500",
-  "from-amber-500 to-orange-500",
-  "from-violet-500 to-purple-500",
-  "from-cyan-500 to-sky-500",
-];
-const avatarColor = (name = "") =>
-  avatarColors[(name.charCodeAt(0) || 0) % avatarColors.length];
+import { priorityStyle, columnStyle, avatarColor } from "../KanbanBoard/taskStyles";
 
 const DashboardMyTasks = () => {
   const [data, setData] = useState([]);
@@ -133,7 +90,7 @@ const handleDragEnd = async (result) => {
 
   // API call (background)
   try {
-    await api.patch(
+    const response = await api.patch(
       `/api/workspace/${workspaceid}/tasks/${draggableId}/move`,
       {
         status: destStatus,
@@ -143,7 +100,8 @@ const handleDragEnd = async (result) => {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
-  } catch (err) {
+    if (response.data.rebalanced) fetchTasks();
+  } catch {
     toast.error("Move failed");
 
     //rollback UI
@@ -210,7 +168,7 @@ const handleDragEnd = async (result) => {
                 )}
                 {assignee ? (
                   <div
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-linear-to-br text-xs font-semibold text-white ${avatarColor(assignee)}`}
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white ${avatarColor(assignee)}`}
                   >
                     {assignee.charAt(0).toUpperCase()}
                   </div>
@@ -265,7 +223,7 @@ const handleDragEnd = async (result) => {
           <div className="mb-4 flex items-center gap-2.5">
             <span className={`h-2.5 w-2.5 rounded-full ${column.dot}`} />
             <p className="text-base font-semibold text-slate-100">{title}</p>
-            <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-indigo-500 px-1.5 text-xs font-semibold text-white">
+            <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-blue-500 px-1.5 text-xs font-semibold text-white">
               {tasks.length}
             </span>
           </div>
@@ -274,7 +232,7 @@ const handleDragEnd = async (result) => {
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex min-h-28 flex-1 flex-col gap-3 overflow-y-auto rounded-2xl [scrollbar-color:#334155_transparent] [scrollbar-width:thin] transition-colors ${
+            className={`flex min-h-28 flex-1 flex-col gap-3 overflow-y-auto rounded-2xl [scrollbar-color:var(--color-slate-700)_transparent] [scrollbar-width:thin] transition-colors ${
               snapshot.isDraggingOver ? `ring-1 ring-inset ${column.over}` : ""
             }`}
           >

@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt"
 import User from "../models/User.js"
 import jwt from 'jsonwebtoken'
+import { sendError } from "../utils/handleError.js"
 
 const generateToken= (userId,role)=>{
     return jwt.sign({userId,role},process.env.JWT_SECRET,{expiresIn:'15m'})
@@ -13,13 +14,14 @@ const generateRefreshToken= (userId)=>{
 // :POST /api/users/register
 export const registerUser= async (req,res)=>{
     try{
-    const {name,email,password}=req.body;
+    const {name,password}=req.body;
+    const email=req.body.email?.toString().toLowerCase().trim()   //one account per email, whatever the capital letters
 
     if(!name || !email || !password){                            //if it doen't exist return missing data              
          return res.status(401).json({message:"Missing value"})
     }
 
-    if(await User.findOne({email})){                                    //email already exists in db
+    if(await User.findOne({email}).collation({locale:'en',strength:2})){      //email already exists in db (older accounts may have capital letters)
         return res.status(400).json({message:"User already exists"})
     }
     
@@ -36,19 +38,18 @@ export const registerUser= async (req,res)=>{
 
     res.status(200).json({message:'User created successfully',token,user:newUser})
 }catch(err){
-    res.status(500).json(err)
+    return sendError(res,err)
 }
 }
 // :POST /api/users/login
 export const loginUser=async(req,res)=>{
     try{
-    const {email,password}=req.body
-
- 
+    const {password}=req.body
+    const email=req.body.email?.toString().toLowerCase().trim()
 
     if(!email || !password) return res.status(400).json({message:"Missing Value"})
 
-     const user=await User.findOne({email})
+     const user=await User.findOne({email}).collation({locale:'en',strength:2})   //finds older accounts saved with capital letters too
 
         if(!user) return res.status(400).json({message:"User not found"})
      
@@ -68,7 +69,7 @@ if (!isMatch) {
 
      return res.status(200).json({message:"Login Successful",token,refreshToken,user})
     }catch(err){
-        return res.status(500).json({message:"Internal error",err})
+        return sendError(res,err,"Internal error")
     }
 }
 

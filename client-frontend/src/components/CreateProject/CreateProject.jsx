@@ -94,7 +94,7 @@ const CreateProject = ({ onclose, setRefresh }) => {
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition disabled:opacity-50"
             >
               {loading && (
-                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin"></div>
               )}
               {loading ? "Creating..." : "Create Project"}
             </button>

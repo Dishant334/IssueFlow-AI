@@ -56,5 +56,7 @@ ProjectSchema.index(
 {unique:true}              
 )
 
+ProjectSchema.index({ "members.user": 1 });   // used to list the projects of a user
+
 const Project = mongoose.model("Project",ProjectSchema)
 export default Project;

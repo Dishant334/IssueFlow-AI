@@ -40,5 +40,7 @@ const WorkspaceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+WorkspaceSchema.index({ "members.user": 1 });   // used to list the workspaces of a user
+
 const Workspace = mongoose.model("Workspace", WorkspaceSchema);
 export default Workspace;

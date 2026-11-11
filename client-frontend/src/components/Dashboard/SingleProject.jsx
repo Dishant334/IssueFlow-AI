@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import toast from 'react-hot-toast'
 import api from '../../../configs/api'
 import { Outlet, useNavigate, useParams } from 'react-router-dom'
@@ -131,7 +131,9 @@ const SingleProject = () => {
       <NavButtons loading={loading} />
 
       {/* Child Routes */}
-      <Outlet context={{ singleProject, permissions,loading }} />
+      <Suspense fallback={<div className="flex h-[60vh] items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-600 border-t-blue-500"></div></div>}>
+        <Outlet context={{ singleProject, permissions,loading }} />
+      </Suspense>
 
     </div>
   )

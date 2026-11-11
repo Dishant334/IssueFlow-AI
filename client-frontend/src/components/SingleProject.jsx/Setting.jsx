@@ -13,7 +13,7 @@ const Setting = () => {
     const handleSubmit=async(e)=>{
       e.preventDefault()
       try{
-      const response=await api.patch(`/api/projects/${projectId}`,{name:editDetails.name,description:editDetails.desc},{headers:{Authorization:`Bearer ${token}`}})
+      await api.patch(`/api/projects/${projectId}`,{name:editDetails.name,description:editDetails.desc},{headers:{Authorization:`Bearer ${token}`}})
          navigate(`/workspace/${workspaceid}/projects`)
       window.location.reload()
       toast.success(`Project Details Edited Successfully`)

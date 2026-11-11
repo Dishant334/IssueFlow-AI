@@ -1,5 +1,15 @@
+import mongoose from "mongoose";
 import Comment from "../models/Comments.js";
+import { Task } from "../models/Tasks.js";
+import Project from "../models/Projects.js";
+import Workspace from "../models/Workspace.js";
 import { ai, AI_MODEL } from "../services/aiServices.js";
+
+// the real error (it can contain details of the AI service) stays in the server log
+const aiFailed = (res, err) => {
+  console.error("AI ERROR:", err?.message);
+  return res.status(502).json({ message: "The AI service is not available right now. Please try again in a moment." });
+};
 
 const getText = (response) =>
   response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
@@ -68,8 +78,7 @@ Rough notes: ${trimmedDesc || "none"}`;
 
     return res.status(200).json({ description: text });
   } catch (err) {
-  console.error("AI ERROR:", err.message);
-  return res.status(500).json({ message: `AI service failed due to ${err.message}` });
+  return aiFailed(res, err);
 }
 };
 
@@ -118,7 +127,7 @@ Task description: ${trimmedDesc || "none"}`;
 
     return res.status(200).json({ priority: result });
   } catch (err) {
-      return res.status(500).json({ message: `AI service failed due to ${err.message}` });
+      return aiFailed(res, err);
   }
 };
 
@@ -126,8 +135,23 @@ export const summarizeComments = async (req, res) => {
   try {
     const { issueId } = req.body;
 
-    if (!issueId) {
+    if (!issueId || !mongoose.isValidObjectId(issueId)) {
       return res.status(400).json({ message: "Issue ID is required" });
+    }
+
+    // same rule as the task routes: a workspace member who is in the project (or a workspace admin)
+    const task = await Task.findById(issueId);
+    if (!task) return res.status(404).json({ message: "Task not found" });
+
+    const { userId } = req.user;
+    const workspace = await Workspace.findById(task.workspace);
+    const workspaceMember = workspace?.members.find((m) => m.user.toString() === userId.toString());
+    if (!workspaceMember) return res.status(403).json({ message: "Not allowed" });
+
+    if (workspaceMember.role !== "admin") {
+      const project = await Project.findById(task.project);
+      const inProject = project?.members.some((m) => m.user.toString() === userId.toString());
+      if (!inProject) return res.status(403).json({ message: "Not allowed" });
     }
 
     const comments = await Comment.find({ taskId: issueId });
@@ -160,6 +184,6 @@ export const summarizeComments = async (req, res) => {
 
     return res.status(200).json({ summary: text });
   } catch (err) {
-      return res.status(500).json({ message: `AI service failed due to ${err.message}` });
+      return aiFailed(res, err);
   }
 };

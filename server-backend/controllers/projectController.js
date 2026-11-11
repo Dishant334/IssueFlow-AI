@@ -1,5 +1,8 @@
 import Project from "../models/Projects.js";
 import Workspace from "../models/Workspace.js";
+import { Task } from "../models/Tasks.js";
+import Comment from "../models/Comments.js";
+import { sendError } from "../utils/handleError.js";
 
 // GET /projects/:projectId
 const getproject = async (req, res) => {
@@ -56,8 +59,8 @@ const getproject = async (req, res) => {
         projectRole:projectMember?.role || null
       }
     });
-  } catch (err) {
-    return res.status(500).json({ message: "Something went wrong" });
+  } catch(err){
+    return sendError(res,err)
   }
 };
 
@@ -68,7 +71,7 @@ const getproject = async (req, res) => {
   const {workspaceid}=req.params
   const {projectName,projectDesc}=req.body
   if(!workspaceid) return res.status(400).json({message:"Workspace not selected"})
-  if(!projectName) return res.status(400).json({message:"Please Fill the Project Name"})
+  if(!projectName || typeof projectName!=='string' || !projectName.trim()) return res.status(400).json({message:"Please Fill the Project Name"})
     const normalizedName = projectName.trim().toLowerCase()
     const duplicateName = await Project.findOne({name:normalizedName,workspaceId:workspaceid})
     if(duplicateName) return res.status(400).json({message:"This project name is already there"})
@@ -94,8 +97,8 @@ const getproject = async (req, res) => {
 
   return res.status(201).json({message:"Project created successfully"})
 }catch(err){
-    return res.status(500).json({message:"Something went wrong"})
-}
+    return sendError(res,err)
+  }
  }
 
 //POST /projects/:projectId/members
@@ -175,8 +178,8 @@ const addMembers = async (req, res) => {
       message: "Members added successfully",
       addedCount: newUsers.length,
     });
-  } catch (err) {
-    return res.status(500).json({ message: "Something went wrong" });
+  } catch(err){
+    return sendError(res,err)
   }
 };
 
@@ -273,8 +276,8 @@ const updateRole = async (req, res) => {
     return res.status(200).json({
       message: "Role updated successfully",
     });
-  } catch (err) {
-    return res.status(500).json({ message: "Something went wrong" });
+  } catch(err){
+    return sendError(res,err)
   }
 };
 
@@ -298,10 +301,11 @@ const deleteMember=async(req,res)=>{
 
   project.members = project.members.filter(m=>m.user.toString() !=memberId.toString())
   await project.save()
+  await Task.updateMany({project:project._id,assignedTo:memberId},{$unset:{assignedTo:1}})   //he cannot open the project anymore
   return res.status(200).json({message:"Member deleted successfully"})
 }catch(err){
-  res.status(500).json({message:"Something went wrong"})
-}
+    return sendError(res,err)
+  }
 }
 
 //Patch /project/:projectId/archive
@@ -330,7 +334,7 @@ const projectdetailUpdate=async(req,res)=>{
   if(clickerRoleInProject!='project_admin' && clickerRoleInWorkspace!='admin') return res.status(403).json({message:"You are not allowed to change the status of project"})
 
 
-  if(project.status  === status) return res.status(409).json({messgae:"Status is already set"})
+  if(project.status  === status) return res.status(409).json({message:"Status is already set"})
   
   project.status=status
  await project.save()
@@ -338,7 +342,7 @@ const projectdetailUpdate=async(req,res)=>{
  return res.status(200).json({message:"Status Updated Sucessfully"})
   }
   catch(err){
-   return res.status(500).json({message:"Something went wrong"}) 
+    return sendError(res,err)
   }
 }
 
@@ -361,8 +365,8 @@ const getAllProjects=async (req,res)=>{
     }
     return res.status(200).json(projects)
 }catch(err){
-  return res.status(500).json({message:"Something went wrong"})
-}
+    return sendError(res,err)
+  }
 }
 
 // PATCH /projects/:projectId
@@ -454,8 +458,8 @@ const updateProject = async (req, res) => {
     return res.status(200).json({
       message: "Project updated successfully",
     });
-  } catch (err) {
-    return res.status(500).json({ message: "Something went wrong" });
+  } catch(err){
+    return sendError(res,err)
   }
 };
 //DELETE /projects/:projectId
@@ -473,10 +477,14 @@ const clickerInWorkspace=workspace.members.find(m=>m.user.toString()===userId.to
 if(!clickerInWorkspace) return res.status(403).json({message:"You are not authorized"})
 if(clickerInWorkspace.role!='admin') return res.status(403).json({message:"You are not authorized"})
   
+//tasks and their comments go with the project (children first, so a failure in between can be tried again)
+const taskIds=await Task.find({project:projectId}).distinct('_id')
+await Comment.deleteMany({taskId:{$in:taskIds}})
+await Task.deleteMany({project:projectId})
 await Project.findByIdAndDelete(projectId)
-return res.status(204).json({message:"Project deleted successfully"})
+return res.status(200).json({message:"Project deleted successfully"})
   }catch(err){
-    return res.status(500).json({message:"Something went wrong"})
+    return sendError(res,err)
   }
 }
 

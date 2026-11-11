@@ -4,7 +4,7 @@ import { generateDescription, suggestPriority, summarizeComments } from '../cont
 
 const aiRoute=express.Router()
 
-aiRoute.post('/generate-description',generateDescription)
+aiRoute.post('/generate-description',protect,generateDescription)
 aiRoute.post('/suggest-priority',protect,suggestPriority)
 aiRoute.post('/summarize-comments',protect,summarizeComments)
 

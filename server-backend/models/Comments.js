@@ -15,6 +15,7 @@ const commentSchema= mongoose.Schema({
         type:String,
         required:true,
         trim:true,
+        maxLength:1000,
     },
     isEdited:{
         type:Boolean,

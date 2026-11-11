@@ -10,6 +10,7 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
 
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(""); // "description" or "priority" while the AI is answering
 
   const [data, setData] = useState({
     title: "",
@@ -46,7 +47,13 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
   };
 
   const handleAiDescriptionSubmit = async () => {
+    if (!data.title.trim()) {
+      toast.error("Write a title first, then I can generate the description");
+      return;
+    }
+
     try {
+      setAiLoading("description");
       const response = await api.post(
         "/api/ai/generate-description",
         { title: data.title, description: data.description },
@@ -60,12 +67,20 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
 
       toast.success("Description generated");
     } catch (err) {
-      toast.error("AI failed");
+      toast.error(err?.response?.data?.message || "AI failed, please try again");
+    } finally {
+      setAiLoading("");
     }
   };
 
   const handleAiPrioritySubmit = async () => {
+    if (!data.title.trim()) {
+      toast.error("Write a title first, then I can suggest a priority");
+      return;
+    }
+
     try {
+      setAiLoading("priority");
       const response = await api.post(
         "/api/ai/suggest-priority",
         { title: data.title, description: data.description },
@@ -79,20 +94,27 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
 
       toast.success("Priority suggested");
     } catch (err) {
-      toast.error("AI failed");
+      toast.error(err?.response?.data?.message || "AI failed, please try again");
+    } finally {
+      setAiLoading("");
     }
   };
 
   useEffect(() => {
+    // only people who can open the project can be given a task
     async function fetchData() {
-      const response = await api.get(
-        `/api/workspace/${workspaceid}/members`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setMembers(response.data.members);
+      try {
+        const response = await api.get(
+          `/api/projects/${projectId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setMembers(response.data.projectMembers);
+      } catch {
+        toast.error("Failed to load members");
+      }
     }
     fetchData();
-  }, [workspaceid]);
+  }, [projectId]);
 
   return (
     <AnimatePresence>
@@ -142,9 +164,13 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
                 <button
                   type="button"
                   onClick={handleAiDescriptionSubmit}
-                  className="text-xs px-3 py-1 rounded-lg bg-linear-to-r from-indigo-500 to-cyan-500 text-white"
+                  disabled={aiLoading !== ""}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  ✨ Generate
+                  {aiLoading === "description" && (
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-current/30 border-t-current" />
+                  )}
+                  {aiLoading === "description" ? "Generating..." : "Generate"}
                 </button>
               </div>
 
@@ -153,8 +179,16 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
                 value={data.description}
                 onChange={handleInput}
                 rows={3}
-                placeholder="Enter description"
-                className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                maxLength={200}
+                disabled={aiLoading === "description"}
+                placeholder={
+                  aiLoading === "description"
+                    ? "Writing a description..."
+                    : "Enter description"
+                }
+                className={`w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none ${
+                  aiLoading === "description" ? "animate-pulse opacity-70" : ""
+                }`}
               />
             </div>
 
@@ -190,13 +224,21 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
                 <button
                   type="button"
                   onClick={handleAiPrioritySubmit}
-                  className="text-xs px-3 py-1 rounded-lg bg-linear-to-r from-indigo-500 to-cyan-500 text-white"
+                  disabled={aiLoading !== ""}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  ✨ Suggest
+                  {aiLoading === "priority" && (
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-current/30 border-t-current" />
+                  )}
+                  {aiLoading === "priority" ? "Thinking..." : "Suggest"}
                 </button>
               </div>
 
-              <div className="flex gap-3">
+              <div
+                className={`flex gap-3 transition-opacity ${
+                  aiLoading === "priority" ? "animate-pulse opacity-60 pointer-events-none" : ""
+                }`}
+              >
                 {["low", "medium", "high"].map((item) => (
                   <button
                     key={item}
@@ -254,7 +296,7 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
                 className="flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white"
               >
                 {loading && (
-                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin"></div>
                 )}
                 {loading ? "Creating..." : "Create Task"}
               </button>

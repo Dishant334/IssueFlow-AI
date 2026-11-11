@@ -1,9 +1,14 @@
+import mongoose from "mongoose";
 import Workspace from "../models/Workspace.js";
 
 const workspaceAdmin = async (req, res, next) => {
   try {
     const { userId } = req.user;
     const { workspaceid } = req.params;
+
+    if (!mongoose.isValidObjectId(workspaceid)) {
+      return res.status(400).json({ message: "Invalid workspace id" });
+    }
 
     const workspace = await Workspace.findById(workspaceid);
 

@@ -10,12 +10,16 @@ const SingleTaskModal = ({onClose,taskId}) => {
     const token=localStorage.getItem('token')
     const [text,setText]=useState('')
     const [commentSummary,setCommentSummary]=useState('')
+    const [summaryLoading,setSummaryLoading]=useState(false)
     const commentSummaryButton=async(taskId)=>{
         try{
+          setSummaryLoading(true)
           const response=await api.post('/api/ai/summarize-comments',{issueId:taskId},{headers:{Authorization:`Bearer ${token}`}})
           setCommentSummary(response.data.summary)
         }catch(err){
             toast.error(err?.response?.data?.message || 'Something Went Wrong')
+        }finally{
+          setSummaryLoading(false)
         }
     }
     const fetchData=async(taskId)=>{
@@ -32,7 +36,7 @@ const SingleTaskModal = ({onClose,taskId}) => {
   
     const addComment=async()=>{
         try{
-          const response= await api.post(`/api/workspace/${workspaceid}/project/${projectId}/task/${taskId}/comments`,{text:text},{headers:{Authorization:`Bearer ${token}`}})
+          await api.post(`/api/workspace/${workspaceid}/project/${projectId}/task/${taskId}/comments`,{text:text},{headers:{Authorization:`Bearer ${token}`}})
           setText('')
         }catch(err){
             toast.err(err?.response?.data?.message)
@@ -131,13 +135,17 @@ const SingleTaskModal = ({onClose,taskId}) => {
 
             <button
               onClick={() => commentSummaryButton(taskId)}
+              disabled={summaryLoading}
               className="
-                text-sm px-3 py-1.5 rounded-lg
-                bg-linear-to-r from-indigo-500 to-cyan-500
-                text-white hover:opacity-90 transition
+                flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg
+                bg-blue-600 hover:bg-blue-500
+                text-white transition disabled:opacity-60 disabled:cursor-not-allowed
               "
             >
-              ✨ AI Summary
+              {summaryLoading && (
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current/30 border-t-current" />
+              )}
+              {summaryLoading ? "Summarizing..." : "Summarize comments"}
             </button>
           </div>
 

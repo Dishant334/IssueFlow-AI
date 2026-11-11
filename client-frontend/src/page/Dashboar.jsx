@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { Link, Outlet, useLocation, useParams } from 'react-router-dom'
 import {ChevronDown, CirclePlus, FolderKanban, House, StickyNote, User} from 'lucide-react'
 import Workspace from '../components/Dashboard/Workspace'
 import { addWorkspace, getWorkspaces } from '../apiHelper/workspace'
+import socket from '../socket'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import api from '../../configs/api'
@@ -12,6 +13,12 @@ const Dashboar = () => {
   const location=useLocation()
   const [title,setTitle]=useState('')
   const [name,setName]=useState('')
+  const [mode,setMode]=useState(localStorage.getItem('theme')==='light' ? 'light' : 'dark')
+  const toggleMode=()=>{
+    const next=mode==='dark' ? 'light' : 'dark'
+    localStorage.setItem('theme',next)
+    setMode(next)
+  }
   const isActive = (path) => location.pathname.includes(path)
   const [openForm,setOpenForm]=useState(false)
   const [workspaces,setWorkspaces]=useState([])
@@ -30,6 +37,7 @@ const Dashboar = () => {
 }
  const navigate=useNavigate()
 const handleLogout=()=>{
+  socket.disconnect()
   api.post('/api/users/logout',{refreshToken:localStorage.getItem('refreshToken')})   //removes it from db
   localStorage.removeItem('token')
   localStorage.removeItem('refreshToken')
@@ -38,7 +46,7 @@ const handleLogout=()=>{
 
 useEffect(()=>{fetchData()},[workspaceid])
 
-const limitChars = (text, limit = 5) => {
+const limitChars = (text) => {
     if(!text) return '';
   
   const words=text.split(' ');
@@ -91,23 +99,23 @@ useEffect(() =>{allWorkspaces()},[reload])
 
 
   return (
-    <div className='relative flex '>
+    <div className={`theme-ember ${mode==='light' ? 'theme-light' : ''} relative flex`}>
       {/*left sidebar*/}
-       <div className='w-1/7 min-h-screen bg-black px-4 h-screen sticky top-0 '>
+       <div className='w-1/7 min-h-screen bg-slate-950 px-4 h-screen sticky top-0 '>
        {/*Name+Avatar*/}
           <div onClick={()=>setModel((prev)=>!prev)}  className='flex cursor-pointer text-sm justify-center mt-8'>
             <div className='flex text-gray-300 font-semibold gap-1'>
-             <div><p className='text-md bg-[#1E293B] text-[#3B82F6] px-1 rounded-xl'>{twoLetter(name)}</p></div>
+             <div><p className='text-md bg-slate-800 text-blue-400 px-1 rounded-xl'>{twoLetter(name)}</p></div>
              <h1 className='text-md'>{limitChars(name)}</h1>
              <ChevronDown size={20}  className='text-gray-300 cursor-pointer'/>
             </div>
           </div>
-          {model && <div className='absolute flex justify-center ml-10  mt-2 w-40 bg-[#1f2937]   border border-gray-700 overflow-hidden z-50  rounded-lg text-slate-100'>
+          {model && <div className='absolute flex justify-center ml-10  mt-2 w-40 bg-slate-800   border border-gray-700 overflow-hidden z-50  rounded-lg text-slate-100'>
             <button onClick={handleLogout} className='w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500 hover:text-white transition duration-200'>Logout</button>
             </div>}
         {/*Workspace*/}
         <div className='text-white my-8 px-4'>
-             <div className='flex justify-between px-2'><p className='text-sm text-[#9CA3Af]'>Workspaces</p> <button onClick={()=>setOpenForm(true)} className='transform transition-transform duration-300 hover:scale-125'><CirclePlus size={12} className='text-[#6B7280] hover:text-[#E5E7EB]'/></button></div>
+             <div className='flex justify-between px-2'><p className='text-sm text-slate-400'>Workspaces</p> <button onClick={()=>setOpenForm(true)} className='transform transition-transform duration-300 hover:scale-125'><CirclePlus size={12} className='text-[#6B7280] hover:text-[#E5E7EB]'/></button></div>
             <Workspace workspaces={workspaces}/>
             </div>  
         {/*buttons*/}
@@ -120,10 +128,10 @@ useEffect(() =>{allWorkspaces()},[reload])
           </div>
        </div>
       {/*right content*/}
-      <div className='w-6/7 min-h-screen bg-[#0B1220]'>
+      <div className='w-6/7 min-h-screen bg-slate-900'>
       
       
-       {openForm ? <div onClick={(e)=>setOpenForm(false)} className='fixed z-20 flex items-center justify-center min-h-3/4 min-w-3/4 backdrop:blur-md'>
+       {openForm ? <div onClick={()=>setOpenForm(false)} className='fixed z-20 flex items-center justify-center min-h-3/4 min-w-3/4 backdrop:blur-md'>
 <form onSubmit={handleNewWorkspaceSubmit} onClick={(e)=>e.stopPropagation()} className=" flex flex-col w-96 p-8 rounded-2xl bg-white shadow-lg shadow-indigo-200/40 transition-all duration-300 hover:shadow-xl">
   <p className="text-center text-xl font-semibold text-indigo-600 mb-6">
     Add New Workspace </p>
@@ -133,7 +141,9 @@ useEffect(() =>{allWorkspaces()},[reload])
   <button  type="submit" className="cursor-pointer mt-8 py-3 rounded-lg  bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition">Add Workspace</button>
 </form>
        </div> : ''}
-      <Outlet/>
+      <Suspense fallback={<div className="flex h-[60vh] items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-600 border-t-blue-500"></div></div>}>
+        <Outlet context={{mode,toggleMode}}/>
+      </Suspense>
       </div>
     </div>
   )

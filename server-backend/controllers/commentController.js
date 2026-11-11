@@ -1,23 +1,16 @@
+import mongoose from "mongoose";
 import Comment from "../models/Comments.js";
-import { Task } from "../models/Tasks.js";
 import { getio } from "../services/socketServices.js";
+import { sendError } from "../utils/handleError.js";
+
+// the workspace, project and task of the url are already checked by the middleware (req.task)
 
 const createComment =async(req,res)=>{
-    try{        
+    try{
    const {userId}=req.user
-   const workspace=req.workspace
-   const project=req.project
-   const {taskId}=req.params
-   const {text}=req.body
+   const taskId=req.task._id
+   const text=req.body.text?.toString().trim()
    if(!text) return res.status(400).json({message:"Please enter a valid comment"})
-
-   if(!taskId) return res.status(400).json({message:"TaskId is wrong"})
-   const task=await Task.findById(taskId)
-   if(!task) return res.status(400).json({message:"Task does not exist"}) 
-   const taskInWorkspace=task.workspace.toString() ===workspace._id.toString()
-  if(!taskInWorkspace) return res.status(400).json({message:"Task not in workspace"})
-   const taskInProject=task.project.toString()===project._id.toString()
-  if(!taskInProject) return res.status(400).json({message:"Task not in project"})
 
    const comment= await Comment.create({
         taskId:taskId,
@@ -31,34 +24,21 @@ const createComment =async(req,res)=>{
      .populate("user", "name")
 
      const io = getio();
-     io.to(taskId).emit("newComment", populatedComment);
+     io.to(taskId.toString()).emit("newComment", populatedComment);
 
     return res.status(200).json({message:"Comment added successfully",comment})
 }catch(err){
-    return res.status(500).json({message:"Something went wrong"})
+    return sendError(res,err)
 }
 }
 
 const showComments=async(req,res)=>{
     try{
-       const {userId}=req.user
-   const workspace=req.workspace
-   const project=req.project
-   const {taskId}=req.params
-    const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 3
+   const taskId=req.task._id
+    const page = Math.max(parseInt(req.query.page) || 1, 1)
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 3, 1), 50)   //at most 50 comments at once
 
     const skip = (page - 1) * limit
-
-  
-
-   if(!taskId) return res.status(400).json({message:"TaskId is wrong"})
-   const task=await Task.findById(taskId)
-   if(!task) return res.status(400).json({message:"Task does not exist"}) 
-   const taskInWorkspace=task.workspace.toString() ===workspace._id.toString()
-  if(!taskInWorkspace) return res.status(400).json({message:"Task not in workspace"})
-   const taskInProject=task.project.toString()===project._id.toString()
-  if(!taskInProject) return res.status(400).json({message:"Task not in project"})
 
   const comments = await Comment.find({ taskId })
       .populate("user", "name")
@@ -74,95 +54,73 @@ return res.status(200).json({
   currentPage: page
 })
 }catch(err){
-    return res.status(500).json({message:"Something went wrong"})
+    return sendError(res,err)
 }
+}
+
+// loads the comment of the url, it must be written by this user and belong to this task
+const findOwnComment=async(req,res)=>{
+   const {userId}=req.user
+   const {commentId}=req.params
+   if(!mongoose.isValidObjectId(commentId)){
+     res.status(400).json({message:"Comment does not exist"})
+     return null
+   }
+   const comment = await Comment.findById(commentId)
+   if (!comment){
+     res.status(404).json({ message: "Comment not found" })
+     return null
+   }
+   if (comment.user.toString() !== userId.toString()) {
+     res.status(403).json({ message: "Not authorized" })
+     return null
+   }
+   if (comment.taskId.toString() !== req.task._id.toString()) {
+     res.status(400).json({ message: "Comment not in this task" })
+     return null
+   }
+   return comment
 }
 
 const deleteComment=async (req,res)=>{
     try{
-   const {userId}=req.user
-   const workspace=req.workspace
-   const project=req.project
-   const {taskId}=req.params
-   const {commentId}=req.params
+    const comment=await findOwnComment(req,res)
+    if(!comment) return
 
-   if(!commentId) return res.status(400).json({message:"Comment does not exist"})
-
-   if(!taskId) return res.status(400).json({message:"TaskId is wrong"})
-   const task=await Task.findById(taskId)
-   if(!task) return res.status(400).json({message:"Task does not exist"}) 
-   const taskInWorkspace=task.workspace.toString() ===workspace._id.toString()
-  if(!taskInWorkspace) return res.status(400).json({message:"Task not in workspace"})
-   const taskInProject=task.project.toString()===project._id.toString()
-  if(!taskInProject) return res.status(400).json({message:"Task not in project"})
-
-      const comment = await Comment.findById(commentId)
-      if (!comment) return res.status(404).json({ message: "Comment not found" })
-      if (comment.user.toString() !== userId.toString()) {
-       return res.status(403).json({ message: "Not authorized" })
-    }
-      if (comment.taskId.toString() !== taskId.toString()) {
-        return res.status(400).json({ message: "Comment not in this task" })
-       }
-
-
-    await Comment.findByIdAndDelete(commentId)
+    await Comment.findByIdAndDelete(comment._id)
 
     //real time change
     const io = getio();
-   io.to(taskId).emit("deleteComment", commentId);
+   io.to(req.task._id.toString()).emit("deleteComment", comment._id.toString());
 
-    return res.status(201).json({message:"Comment deleted successfully"})
+    return res.status(200).json({message:"Comment deleted successfully"})
 }catch(err){
-    return res.status(500).json({message:"Something went wrong"})
+    return sendError(res,err)
 }  
 }
 
 const editComment=async(req,res)=>{
    try{
-      const {userId}=req.user
-   const workspace=req.workspace
-   const project=req.project
-   const {taskId}=req.params
-   const {commentId}=req.params
-   const {editedComment}=req.body
-   if(!editedComment) return res.status(404).json({message:"Please type something"})
-     
+   const editedComment=req.body.editedComment?.toString().trim()
+   if(!editedComment) return res.status(400).json({message:"Please type something"})
 
-   if(!commentId) return res.status(400).json({message:"Comment does not exist"})
+    const comment=await findOwnComment(req,res)
+    if(!comment) return
 
-   if(!taskId) return res.status(400).json({message:"TaskId is wrong"})
-   const task=await Task.findById(taskId)
-   if(!task) return res.status(400).json({message:"Task does not exist"}) 
-   const taskInWorkspace=task.workspace.toString() ===workspace._id.toString()
-  if(!taskInWorkspace) return res.status(400).json({message:"Task not in workspace"})
-   const taskInProject=task.project.toString()===project._id.toString()
-  if(!taskInProject) return res.status(400).json({message:"Task not in project"})
-
-    const comment = await Comment.findById(commentId)
-
-    if (!comment) return res.status(404).json({ message: "Comment not found" })
-    if (comment.user.toString() !== userId.toString()) {
-    return res.status(403).json({ message: "Not authorized" })
-    }
-     if (comment.taskId.toString() !== taskId.toString()) {
-     return res.status(400).json({ message: "Comment not in this task" })
-     }
-
-    
-
-    await Comment.findByIdAndUpdate(commentId,{ text: editedComment, isEdited: true },{ new: true })
+    comment.text=editedComment
+    comment.isEdited=true
+    await comment.save()
 
     //real time change
     const io = getio();
-    io.to(taskId).emit("editComment", {
-    commentId,
+    io.to(req.task._id.toString()).emit("editComment", {
+    commentId:comment._id.toString(),
     text: editedComment
     });
 
     return res.status(200).json({message:"Comment edited successfully"})
    }catch(err){
-    return res.status(500).json({message:"Something went wrong"})
+    return sendError(res,err)
    }
 }
 

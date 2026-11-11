@@ -1,8 +1,9 @@
 import React from 'react'
 import {ArrowRight, FolderOpen, Layers, UserCheck, Users} from 'lucide-react'
+import ThemeLamp from '../ThemeLamp'
 import toast from 'react-hot-toast'
 import { useState } from 'react'
-import {useNavigate, useParams} from 'react-router-dom'
+import {useNavigate, useOutletContext, useParams} from 'react-router-dom'
 import api from '../../../configs/api'
 import { useEffect } from 'react'
 import CountUp from 'react-countup'
@@ -10,24 +11,24 @@ import {motion} from 'framer-motion'
 
 // look of the status chip and the priority dot
 const statusStyle = {
-  todo: { label: 'Not started', chip: 'bg-indigo-500/10 text-indigo-300', dot: 'bg-indigo-400' },
-  in_progress: { label: 'In progress', chip: 'bg-amber-500/10 text-amber-300', dot: 'bg-amber-400' },
+  todo: { label: 'Not started', chip: 'bg-slate-500/15 text-slate-300', dot: 'bg-slate-400' },
+  in_progress: { label: 'In progress', chip: 'bg-amber-500/15 text-amber-300', dot: 'bg-amber-400' },
   done: { label: 'Done', chip: 'bg-emerald-500/10 text-emerald-300', dot: 'bg-emerald-400' },
 }
 const priorityStyle = {
   high: { label: 'High', pill: 'bg-red-500/15 text-red-300' },
   medium: { label: 'Medium', pill: 'bg-amber-500/15 text-amber-300' },
-  low: { label: 'Low', pill: 'bg-indigo-500/15 text-indigo-300' },
+  low: { label: 'Low', pill: 'bg-slate-500/20 text-slate-300' },
 }
 
 // project avatar gets one of these gradients
 const avatarColors = [
-  'from-blue-500 to-indigo-500',
-  'from-emerald-500 to-teal-500',
-  'from-pink-500 to-rose-500',
-  'from-amber-500 to-orange-500',
-  'from-violet-500 to-purple-500',
-  'from-cyan-500 to-sky-500',
+  'bg-[#C4552F]',
+  'bg-[#738A52]',
+  'bg-[#A37624]',
+  'bg-[#A0674D]',
+  'bg-[#4B7673]',
+  'bg-[#8C7B5A]',
 ]
 const avatarColor = (name = '') =>
   avatarColors[(name.charCodeAt(0) || 0) % avatarColors.length]
@@ -60,6 +61,7 @@ const DashboardHome = () => {
   const [user,setUser]=useState({})
   const {workspaceid}=useParams()
   const navigate=useNavigate()
+  const {mode,toggleMode}=useOutletContext()
   const token=localStorage.getItem('token')
   const [loading,setLoading]=useState(false)
 
@@ -77,7 +79,7 @@ const DashboardHome = () => {
     try{
       const response=await api.get(`/api/workspace/${workspaceid}/details`,{headers:{Authorization:`Bearer ${token}`}})
       setUser(response.data.details)
-    }catch(err){
+    }catch{
       setUser({})
     }
    }
@@ -119,13 +121,16 @@ const DashboardHome = () => {
       </div>
     }
   return (
-    <div className='p-6'>
+    <div className='relative overflow-x-clip p-6'>
+      {/* Lamp: hangs from the top right, pull the cord to switch dark / light */}
+      <ThemeLamp mode={mode} toggle={toggleMode} className='absolute right-6 top-0 z-20 md:right-10' />
+
       {/* Header */}
       <motion.div
         initial={{opacity:0,y:10}}
         animate={{opacity:1,y:0}}
         transition={{duration:0.4}}
-        className='flex flex-wrap items-end justify-between gap-4'>
+        className='flex flex-wrap items-end justify-between gap-4 pr-16 md:pr-20'>
         <div>
           {user?.workspacename && (
             <p className='text-xs font-medium uppercase tracking-wider text-slate-500'>{user.workspacename}</p>
@@ -187,7 +192,7 @@ const DashboardHome = () => {
 
         {/* Team tasks */}
         <div className='rounded-2xl border border-slate-800 bg-slate-800/40 p-5'>
-          <div className='flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/15 text-violet-300'>
+          <div className='flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300'>
             <Layers size={18}/>
           </div>
           <p className='mt-4 text-3xl font-semibold text-slate-100'><CountUp end={stats.totalTasks || 0} duration={1.2}/></p>
@@ -196,7 +201,7 @@ const DashboardHome = () => {
 
         {/* Assigned */}
         <div className='rounded-2xl border border-slate-800 bg-slate-800/40 p-5'>
-          <div className='flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300'>
+          <div className='flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300'>
             <UserCheck size={18}/>
           </div>
           <p className='mt-4 text-3xl font-semibold text-slate-100'><CountUp end={assigned} duration={1.2}/></p>
@@ -225,8 +230,11 @@ const DashboardHome = () => {
                 <div
                   key={m._id}
                   onClick={()=>navigate(`/workspace/${workspaceid}/projects/${m._id}`)}
+                  onKeyDown={(e)=>e.key==='Enter' && navigate(`/workspace/${workspaceid}/projects/${m._id}`)}
+                  role='button'
+                  tabIndex={0}
                   className='group flex cursor-pointer items-center gap-4 rounded-xl border border-transparent p-3 transition-colors hover:border-slate-700 hover:bg-slate-800/70'>
-                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br text-base font-semibold text-white ${avatarColor(m.name)}`}>
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-base font-semibold text-white ${avatarColor(m.name)}`}>
                     {m.name.charAt(0).toUpperCase()}
                   </div>
                   <div className='min-w-0 flex-1'>
@@ -278,6 +286,9 @@ const DashboardHome = () => {
                   <div
                     key={task._id}
                     onClick={()=>navigate(`/workspace/${workspaceid}/projects/${task.project}/projectt`)}
+                    onKeyDown={(e)=>e.key==='Enter' && navigate(`/workspace/${workspaceid}/projects/${task.project}/projectt`)}
+                    role='button'
+                    tabIndex={0}
                     className='cursor-pointer rounded-xl border border-slate-700/60 bg-slate-800/70 p-3.5 transition-colors hover:border-slate-600 hover:bg-slate-800'>
                     <div className='flex items-start justify-between gap-3'>
                       <p className='text-sm font-semibold leading-snug text-slate-100'>{task.title}</p>

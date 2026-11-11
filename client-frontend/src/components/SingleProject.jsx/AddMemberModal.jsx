@@ -53,7 +53,7 @@ const AddMemberModal = ({ setIsAddMember, projectMembers }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setAllMembers(response.data.members);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load members");
     }
   };

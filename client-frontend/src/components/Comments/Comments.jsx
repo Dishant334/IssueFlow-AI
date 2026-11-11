@@ -41,7 +41,7 @@ const [totalPages, setTotalPages] = useState(1)
         }
       )
       fetchData()
-    } catch (err) {
+    } catch {
       toast.error("Delete failed")
     }
   }
@@ -64,7 +64,7 @@ const [totalPages, setTotalPages] = useState(1)
       )
       setEditingId(null)
       fetchData()
-    } catch (err) {
+    } catch {
       toast.error("Edit failed")
     }
   }
@@ -77,27 +77,33 @@ const [totalPages, setTotalPages] = useState(1)
 
 
   useEffect(() => {
-  if (taskId) {
-    socket.emit("joinTask", taskId);
-  }
+  if (!taskId) return;
+
+  // the server forgets the rooms when the connection drops, so join again after every (re)connect
+  const join = () => socket.emit("joinTask", taskId);
+  socket.on("connect", join);
+  if (socket.connected) join();
+  else socket.connect();
 
   return () => {
+    socket.off("connect", join);
     socket.emit("leaveTask", taskId);
   };
 }, [taskId]);
 
 useEffect(() => {
-  socket.on("newComment", (newComment) => {
+  const onNewComment = (newComment) => {
     if (page === 1) {
       setComments((prev) => [newComment, ...prev]);
     }
-  });
+  };
+  socket.on("newComment", onNewComment);
 
-  return () => socket.off("newComment");
+  return () => socket.off("newComment", onNewComment);
 }, [page]);
 
 useEffect(() => {
-  socket.on("editComment", ({ commentId, text }) => {
+  const onEditComment = ({ commentId, text }) => {
     setComments((prev) =>
       prev.map((c) =>
         c._id === commentId
@@ -105,19 +111,21 @@ useEffect(() => {
           : c
       )
     );
-  });
+  };
+  socket.on("editComment", onEditComment);
 
-  return () => socket.off("editComment");
+  return () => socket.off("editComment", onEditComment);
 }, []);
 
 useEffect(() => {
-  socket.on("deleteComment", (commentId) => {
+  const onDeleteComment = (commentId) => {
     setComments((prev) =>
       prev.filter((c) => c._id !== commentId)
     );
-  });
+  };
+  socket.on("deleteComment", onDeleteComment);
 
-  return () => socket.off("deleteComment");
+  return () => socket.off("deleteComment", onDeleteComment);
 }, []);
 
   return (
