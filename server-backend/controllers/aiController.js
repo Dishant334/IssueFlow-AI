@@ -1,5 +1,5 @@
 import Comment from "../models/Comments.js";
-import { ai } from "../services/aiServices.js";
+import { ai, AI_MODEL } from "../services/aiServices.js";
 
 export const generateDescription = async (req, res) => {
   try {
@@ -19,7 +19,7 @@ export const generateDescription = async (req, res) => {
     const prompt = `You are an AI assistant for a project management tool. Convert the following rough issue input into a short and clear issue description. Keep it concise (2-3 lines). Use simple and professional language. Do not over-explain. Avoid unnecessary assumptions.Just give the output no extra comments. Input: title: ${trimmedTitle} description: ${trimmedDesc || ""}`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: AI_MODEL,
       contents: prompt,
     });
 
@@ -62,7 +62,7 @@ export const suggestPriority = async (req, res) => {
     const prompt = `You are an AI assistant for a project management tool. Analyze the issue based on its title and description and suggest a priority level. Rules: Respond with only one word: LOW, MEDIUM, or HIGH. Do not explain your answer. Low: minor issue, Medium: important issue but not blocking, High: critical bug, blocking issue, or security issue. Input: title: ${trimmedTitle}, description: ${trimmedDesc}`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: AI_MODEL,
       contents: prompt,
     });
 
@@ -110,7 +110,7 @@ export const summarizeComments = async (req, res) => {
     const prompt = `You are an AI assistant for a project management tool. Summarize the following issue comments into a short, clear summary. Rules: Keep it concise (3-5 lines). Highlight key decisions, concerns, or progress. Avoid unnecessary details. Use simple professional language. Comments: ${commentText}`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: AI_MODEL,
       contents: prompt,
     });
 
