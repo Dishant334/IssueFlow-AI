@@ -2,11 +2,18 @@ import Workspace from '../models/Workspace.js'
 import User from '../models/User.js'
 import { sendError } from '../utils/handleError.js'
 import { removeUserFromWorkspaceData, deleteWorkspaceData } from '../services/workspaceCleanup.js'
+import { keyOf, get, set } from '../utils/cache.js'
+import { userChanged, workspaceChanged } from '../services/dataCache.js'
 
 const details =async (req,res)=>{
     try{
     const {userId}=req.user
     const {workspaceid}=req.params
+
+    // asked on every page load. Only people who are members get an answer that is kept, so a cached answer is safe
+    const cacheKey=keyOf(['memberships',`user:${userId}`],`details:${workspaceid}`)
+    const cached=get(cacheKey)
+    if(cached) return res.status(200).json(cached)
      
     const user=await User.findById(userId)
     if(!user) return res.status(404).json({message:'User Not Found.Please Signup to continue'})
@@ -32,6 +39,7 @@ const details =async (req,res)=>{
         workspacecreating:workspacecreating,
         workspacecreatedOn:workspacecreatedOn
     }
+    set(cacheKey,{details},60)
     return res.status(200).json({details})
 }catch(err){
     return sendError(res,err)
@@ -51,6 +59,7 @@ const updateUser=async (req,res)=>{
     if(name ===newName)   return res.status(200).json({message:"No changes made"})
 
     await User.findByIdAndUpdate(userId,{name:newName})
+    userChanged(userId)   //his name is in the cached details
     return res.status(200).json({message:"UserName Updated Successfully"})
     }catch(err){
     return sendError(res,err)
@@ -77,6 +86,7 @@ const updateWorkspace=async(req,res)=>{
      if(workspace.name===newWorkspaceName) return res.status(200).json({message:"No changes made"})
 
      await Workspace.findByIdAndUpdate(workspaceid,{name:newWorkspaceName})
+     workspaceChanged(workspaceid)   //the name is in the cached lists
      return res.status(200).json({message:"Workspace name updated successfully"})
     }catch(err){
     return sendError(res,err)
@@ -102,6 +112,7 @@ const updateWorkspace=async(req,res)=>{
         workspace.members=workspace.members.filter((m)=>m.user.toString()!=userId.toString())
         await workspace.save()
         await removeUserFromWorkspaceData(workspace._id,userId)   //out of the projects, tasks unassigned
+        workspaceChanged(workspace._id)
 
         const remainingWorkspaces = await Workspace.find({
           "members.user": userId
@@ -131,6 +142,7 @@ const updateWorkspace=async(req,res)=>{
         
         await deleteWorkspaceData(workspace._id)   //projects, tasks, comments and invites go with it
         await Workspace.findByIdAndDelete(workspaceid)
+        workspaceChanged(workspaceid)
         
         const remainingWorkspaces=await Workspace.find({'members.user':userId})
         return res.status(200).json({

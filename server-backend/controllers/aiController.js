@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import mongoose from "mongoose";
 import Comment from "../models/Comments.js";
 import { Task } from "../models/Tasks.js";
@@ -6,6 +7,7 @@ import Workspace from "../models/Workspace.js";
 import { ai, AI_MODEL } from "../services/aiServices.js";
 import { consumeAiQuota, getAiQuota, markAiExhausted, refundAiQuota, secondsUntilReset } from "../services/aiQuota.js";
 import { tooMany } from "../authMiddleWare/rateLimit.js";
+import { get, set } from "../utils/cache.js";
 
 // the real error (it can contain details of the AI service) stays in the server log
 const aiFailed = (res, err) => {
@@ -22,6 +24,15 @@ const getText = (response) =>
 const askGemini = async (req, res, prompt) => {
   const { userId } = req.user;
 
+  // The same prompt (same title, notes or comments) gets the same answer, so it is not asked again and costs no quota.
+  // When a comment is added the prompt changes, so a summary is made again by itself.
+  const cacheKey = "ai:" + crypto.createHash("sha256").update(prompt).digest("hex");
+  const known = get(cacheKey);
+  if (known !== undefined) {
+    res.locals.fromCache = true;
+    return known;
+  }
+
   const quota = await consumeAiQuota(userId);
   if (!quota.allowed) {
     tooMany(
@@ -34,7 +45,9 @@ const askGemini = async (req, res, prompt) => {
 
   try {
     const response = await ai.models.generateContent({ model: AI_MODEL, contents: prompt });
-    return getText(response);
+    const text = getText(response);
+    if (text) set(cacheKey, text, 24 * 60 * 60);   // only a real answer is kept (not an error, not an empty answer)
+    return text;
   } catch (err) {
     console.error("AI ERROR:", err?.status, err?.message);
 
@@ -120,7 +133,7 @@ Rough notes: ${trimmedDesc || "none"}`;
         .json({ message: "AI returned empty response" });
     }
 
-    return res.status(200).json({ description: text, quota: await getAiQuota(req.user.userId) });
+    return res.status(200).json({ description: text, quota: await getAiQuota(req.user.userId), cached: !!res.locals.fromCache });
   } catch (err) {
   return aiFailed(res, err);
 }
@@ -165,7 +178,7 @@ Task description: ${trimmedDesc || "none"}`;
     const match = text.toUpperCase().match(/\b(LOW|MEDIUM|HIGH)\b/);
     const result = match ? match[1] : "MEDIUM";
 
-    return res.status(200).json({ priority: result, quota: await getAiQuota(req.user.userId) });
+    return res.status(200).json({ priority: result, quota: await getAiQuota(req.user.userId), cached: !!res.locals.fromCache });
   } catch (err) {
       return aiFailed(res, err);
   }
@@ -217,7 +230,7 @@ export const summarizeComments = async (req, res) => {
         .json({ message: "AI returned empty response" });
     }
 
-    return res.status(200).json({ summary: text, quota: await getAiQuota(req.user.userId) });
+    return res.status(200).json({ summary: text, quota: await getAiQuota(req.user.userId), cached: !!res.locals.fromCache });
   } catch (err) {
       return aiFailed(res, err);
   }

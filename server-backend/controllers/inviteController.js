@@ -6,6 +6,7 @@ import User from "../models/User.js";
 import { sendInviteEmail } from "../services/emailServices.js";
 import { sendError } from "../utils/handleError.js";
 import { removeUserFromWorkspaceData } from "../services/workspaceCleanup.js";
+import { workspaceChanged } from "../services/dataCache.js";
 
 
 
@@ -151,6 +152,7 @@ const hashedToken = crypto
 
      
  
+     workspaceChanged(workspace._id)   //a new member: the cached members are old now
      return res.status(200).json({message:"Joined Workspace Successfully"})
     }catch(err){
     return sendError(res,err)
@@ -266,6 +268,7 @@ const currentMember = fullWorkspace.members.find(
 
       await workspace.save();
       await removeUserFromWorkspaceData(workspace._id, memberId);   //out of the projects, tasks unassigned
+      workspaceChanged(workspace._id)   //he must lose his access at once, not when the cache runs out
 
       return res.status(200).json({
          message: "Member removed successfully"
@@ -294,6 +297,7 @@ const promoteMember=async(req,res)=>{
      targetMember.role="admin"
   
     await workspace.save()
+    workspaceChanged(workspace._id)   //his role changed
      return res.status(200).json({message:"Promote Successful"})
     }catch(err){
     return sendError(res,err)
