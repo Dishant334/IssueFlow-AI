@@ -4,6 +4,8 @@ import { Task } from "../models/Tasks.js";
 import Project from "../models/Projects.js";
 import Workspace from "../models/Workspace.js";
 import { ai, AI_MODEL } from "../services/aiServices.js";
+import { consumeAiQuota, getAiQuota, markAiExhausted, refundAiQuota, secondsUntilReset } from "../services/aiQuota.js";
+import { tooMany } from "../authMiddleWare/rateLimit.js";
 
 // the real error (it can contain details of the AI service) stays in the server log
 const aiFailed = (res, err) => {
@@ -13,6 +15,51 @@ const aiFailed = (res, err) => {
 
 const getText = (response) =>
   response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+// Asks Gemini. The free key has a small daily limit for the whole app (see config/rateLimits.js), so every question
+// takes a point from the user's allowance and from the shared pool first.
+// Returns the text, or null when it has already answered the user (limit reached or error).
+const askGemini = async (req, res, prompt) => {
+  const { userId } = req.user;
+
+  const quota = await consumeAiQuota(userId);
+  if (!quota.allowed) {
+    tooMany(
+      res,
+      quota.retryAfter,
+      quota.reason === "user" ? "You used all your AI requests for today." : "The shared AI limit for today is used up."
+    );
+    return null;
+  }
+
+  try {
+    const response = await ai.models.generateContent({ model: AI_MODEL, contents: prompt });
+    return getText(response);
+  } catch (err) {
+    console.error("AI ERROR:", err?.status, err?.message);
+
+    if (err?.status === 429 && /per.?day/i.test(err?.message || "")) {
+      await markAiExhausted();   // Google says the daily limit is reached: the pool is empty for the rest of the day
+      tooMany(res, secondsUntilReset(), "The AI limit for today is used up.");
+    } else if (err?.status === 429) {
+      await refundAiQuota(userId);   // only a per minute limit: it did not count for the day
+      tooMany(res, 60, "The AI is busy.");
+    } else {
+      await refundAiQuota(userId);   // a temporary error, the request did not count
+      res.status(502).json({ message: "The AI service is not available right now. Please try again in a moment." });
+    }
+    return null;
+  }
+};
+
+// how many AI uses are left today (the frontend shows it next to the AI buttons)
+export const quota = async (req, res) => {
+  try {
+    return res.status(200).json(await getAiQuota(req.user.userId));
+  } catch (err) {
+    return aiFailed(res, err);
+  }
+};
 
 // removes markdown and labels (like "Title:" or "Description:") the model sometimes adds
 // and keeps the text inside the 200 character limit of the task description
@@ -63,12 +110,9 @@ Rules:
 Task title: ${trimmedTitle}
 Rough notes: ${trimmedDesc || "none"}`;
 
-    const response = await ai.models.generateContent({
-      model: AI_MODEL,
-      contents: prompt,
-    });
-
-    const text = cleanDescription(getText(response));
+    const raw = await askGemini(req, res, prompt);
+    if (raw === null) return;
+    const text = cleanDescription(raw);
 
     if (!text) {
       return res
@@ -76,7 +120,7 @@ Rough notes: ${trimmedDesc || "none"}`;
         .json({ message: "AI returned empty response" });
     }
 
-    return res.status(200).json({ description: text });
+    return res.status(200).json({ description: text, quota: await getAiQuota(req.user.userId) });
   } catch (err) {
   return aiFailed(res, err);
 }
@@ -108,12 +152,8 @@ Reply with exactly one word: LOW, MEDIUM or HIGH. No punctuation and no explanat
 Task title: ${trimmedTitle}
 Task description: ${trimmedDesc || "none"}`;
 
-    const response = await ai.models.generateContent({
-      model: AI_MODEL,
-      contents: prompt,
-    });
-
-    const text = getText(response);
+    const text = await askGemini(req, res, prompt);
+    if (text === null) return;
 
     if (!text) {
       return res
@@ -125,7 +165,7 @@ Task description: ${trimmedDesc || "none"}`;
     const match = text.toUpperCase().match(/\b(LOW|MEDIUM|HIGH)\b/);
     const result = match ? match[1] : "MEDIUM";
 
-    return res.status(200).json({ priority: result });
+    return res.status(200).json({ priority: result, quota: await getAiQuota(req.user.userId) });
   } catch (err) {
       return aiFailed(res, err);
   }
@@ -168,13 +208,8 @@ export const summarizeComments = async (req, res) => {
 
     const prompt = `You are an AI assistant for a project management tool. Summarize the following issue comments into a short, clear summary. Rules: Keep it concise (3-5 lines). Highlight key decisions, concerns, or progress. Avoid unnecessary details. Use simple professional language. Comments: ${commentText}`;
 
-    const response = await ai.models.generateContent({
-      model: AI_MODEL,
-      contents: prompt,
-    });
-
-    const text =
-      response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const text = await askGemini(req, res, prompt);
+    if (text === null) return;
 
     if (!text) {
       return res
@@ -182,7 +217,7 @@ export const summarizeComments = async (req, res) => {
         .json({ message: "AI returned empty response" });
     }
 
-    return res.status(200).json({ summary: text });
+    return res.status(200).json({ summary: text, quota: await getAiQuota(req.user.userId) });
   } catch (err) {
       return aiFailed(res, err);
   }

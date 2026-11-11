@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { generateInviteTemplate, generateInviteText } from "../template/inviteTemplate.js";
 import { generateResetPasswordTemplate, generateResetPasswordText } from "../template/resetPasswordTemplate.js";
+import { consumeMailQuota } from "./mailQuota.js";
 
 
 const transporter = nodemailer.createTransport({
@@ -22,6 +23,7 @@ export const sendInviteEmail = async ({
   inviteLink,
   invitedByName,
 }) => {
+  await consumeMailQuota();   // stops with MAIL_LIMIT when the daily budget of mails is used
   try {
     const html = generateInviteTemplate({
       workspaceName,
@@ -48,6 +50,7 @@ export const sendInviteEmail = async ({
 
 
 export const sendResetPasswordEmail = async ({ to, name, resetLink }) => {
+  await consumeMailQuota();
   try {
     const mailOptions = {
       from: `"IssueFlow AI Team" <${process.env.EMAIL_USER}>`,

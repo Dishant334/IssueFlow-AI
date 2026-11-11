@@ -11,6 +11,8 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(""); // "description" or "priority" while the AI is answering
+  const [aiQuota, setAiQuota] = useState(null);   // how many AI uses are left today (the free key has a small daily limit)
+  const aiOut = aiQuota !== null && aiQuota.remaining <= 0;
 
   const [data, setData] = useState({
     title: "",
@@ -65,6 +67,7 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
         description: response.data.description,
       }));
 
+      setAiQuota(response.data.quota);
       toast.success("Description generated");
     } catch (err) {
       toast.error(err?.response?.data?.message || "AI failed, please try again");
@@ -92,6 +95,7 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
         priority: response.data.priority.toLowerCase(),
       }));
 
+      setAiQuota(response.data.quota);
       toast.success("Priority suggested");
     } catch (err) {
       toast.error(err?.response?.data?.message || "AI failed, please try again");
@@ -99,6 +103,18 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
       setAiLoading("");
     }
   };
+
+  useEffect(() => {
+    async function fetchQuota() {
+      try {
+        const response = await api.get("/api/ai/quota", { headers: { Authorization: `Bearer ${token}` } });
+        setAiQuota(response.data);
+      } catch {
+        setAiQuota(null);   // without the number the buttons just work as before
+      }
+    }
+    fetchQuota();
+  }, []);
 
   useEffect(() => {
     // only people who can open the project can be given a task
@@ -136,6 +152,13 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
           </h2>
           <p className="text-slate-400 text-sm mb-6">
             Add task details and use AI to speed things up
+            {aiQuota && (
+              <span className={aiOut ? "block text-amber-400 mt-1" : "block text-slate-500 mt-1"}>
+                {aiOut
+                  ? "AI limit reached for today, it comes back tomorrow."
+                  : `AI uses left today: ${aiQuota.remaining}`}
+              </span>
+            )}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -164,7 +187,7 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
                 <button
                   type="button"
                   onClick={handleAiDescriptionSubmit}
-                  disabled={aiLoading !== ""}
+                  disabled={aiLoading !== "" || aiOut}
                   className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {aiLoading === "description" && (
@@ -224,7 +247,7 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
                 <button
                   type="button"
                   onClick={handleAiPrioritySubmit}
-                  disabled={aiLoading !== ""}
+                  disabled={aiLoading !== "" || aiOut}
                   className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {aiLoading === "priority" && (

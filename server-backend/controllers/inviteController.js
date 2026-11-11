@@ -78,6 +78,7 @@ const hashedToken = crypto
     await  sendInviteEmail({to:normalizeEmail, workspaceName:workspace.name,inviteLink:inviteLink,invitedByName:adminUser.name})
     }catch(mailErr){
       await Invitation.deleteOne({_id:newInvite._id})   //email did not go out, so remove the invite and let the admin try again
+      if(mailErr.code==="MAIL_LIMIT") return res.status(429).json({message:"The daily email limit is reached. Please try again tomorrow"})
       return res.status(502).json({message:"Invite email could not be sent. Please try again"})
     }
      res.status(200).json({message:"Invite Send Successfully"})
