@@ -2,16 +2,62 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import api from "../../../configs/api";
 import { useParams } from "react-router-dom";
-import { Pencil, Trash2, CheckSquare, Loader, CheckCircle } from "lucide-react";
+import { Pencil, Trash2, Calendar, User, Inbox, Plus } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import AddTaskForm from "./AddTaskForm";
 import EditTaskForm from "./EditTaskForm";
 import SingleTaskModal from "./SingleTaskModal";
 
+// priority pill
+const priorityStyle = {
+  high: { label: "High", pill: "bg-red-500/15 text-red-300" },
+  medium: { label: "Medium", pill: "bg-amber-500/15 text-amber-300" },
+  low: { label: "Low", pill: "bg-indigo-500/15 text-indigo-300" },
+};
+
+// column dot + the status chip shown on every card
+const columnStyle = {
+  todo: {
+    dot: "bg-orange-400",
+    chipDot: "bg-indigo-400",
+    chip: "bg-indigo-500/10 text-indigo-300",
+    chipLabel: "Not Started",
+    over: "bg-orange-400/5 ring-orange-400/30",
+  },
+  in_progress: {
+    dot: "bg-blue-400",
+    chipDot: "bg-amber-400",
+    chip: "bg-amber-500/10 text-amber-300",
+    chipLabel: "In Progress",
+    over: "bg-blue-400/5 ring-blue-400/30",
+  },
+  done: {
+    dot: "bg-pink-400",
+    chipDot: "bg-emerald-400",
+    chip: "bg-emerald-500/10 text-emerald-300",
+    chipLabel: "Complete",
+    over: "bg-pink-400/5 ring-pink-400/30",
+  },
+};
+
+// every user gets the same gradient avatar
+const avatarColors = [
+  "from-blue-500 to-indigo-500",
+  "from-emerald-500 to-teal-500",
+  "from-pink-500 to-rose-500",
+  "from-amber-500 to-orange-500",
+  "from-violet-500 to-purple-500",
+  "from-cyan-500 to-sky-500",
+];
+const avatarColor = (name = "") =>
+  avatarColors[(name.charCodeAt(0) || 0) % avatarColors.length];
+
 const KanbanBoard = ({ openForm, setOpenForm }) => {
   const [data, setData] = useState([]);
   const [isEditing, setIsEditing] = useState("");
   const [singleTask, setSingleTask] = useState("");
+  const [addStatus, setAddStatus] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const token = window.localStorage.getItem("token");
   const { workspaceid, projectId } = useParams();
@@ -20,6 +66,7 @@ const KanbanBoard = ({ openForm, setOpenForm }) => {
     setIsEditing("");
     setOpenForm(false);
     setSingleTask("");
+    setAddStatus("");
   }
 
   const deleteTask = async (taskId) => {
@@ -47,6 +94,8 @@ const KanbanBoard = ({ openForm, setOpenForm }) => {
       setData(response.data.tasks);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Something Went Wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -67,8 +116,9 @@ const KanbanBoard = ({ openForm, setOpenForm }) => {
 
     const destStatus = destination.droppableId;
 
+    // leave out the dragged task itself, so prev/next are its real neighbours
     const columnTasks = data
-      .filter((t) => t.status === destStatus)
+      .filter((t) => t.status === destStatus && t._id !== draggableId)
       .sort((a, b) => a.position - b.position);
 
     const prev = columnTasks[destination.index - 1];
@@ -108,116 +158,184 @@ const KanbanBoard = ({ openForm, setOpenForm }) => {
     }
   };
 
-  // GROUPING
-  const todo = data.filter((m) => m.status === "todo");
-  const inProgress = data.filter((m) => m.status === "in_progress");
-  const done = data.filter((m) => m.status === "done");
+  // GROUPING (sorted by position, so a dropped card stays where it was dropped)
+  const byPosition = (a, b) => a.position - b.position;
+  const todo = data.filter((m) => m.status === "todo").sort(byPosition);
+  const inProgress = data.filter((m) => m.status === "in_progress").sort(byPosition);
+  const done = data.filter((m) => m.status === "done").sort(byPosition);
 
-  // COLUMN
-  const renderColumn = (title, tasks, status, Icon, color) => {
+  const percent = data.length ? Math.round((done.length / data.length) * 100) : 0;
+
+  // CARD
+  const renderCard = (task, index) => {
+    const priority = priorityStyle[task.priority] || priorityStyle.medium;
+    const column = columnStyle[task.status] || columnStyle.todo;
+    const assignee = task.assignedTo?.name;
+
     return (
-      <Droppable droppableId={status}>
-        {(provided) => (
+      <Draggable key={task._id} draggableId={task._id} index={index}>
+        {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
-            {...provided.droppableProps}
-            className="w-80 shrink-0 bg-slate-800/70 backdrop-blur rounded-2xl p-4 flex flex-col max-h-[80vh] border border-slate-700 shadow-md"
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            style={
+              snapshot.isDropAnimating
+                ? { ...provided.draggableProps.style, transitionDuration: "0.18s" }
+                : provided.draggableProps.style
+            }
+            onClick={() => setSingleTask(task._id)}
+            className={`group select-none rounded-2xl border p-4 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+              snapshot.isDragging
+                ? "cursor-grabbing rotate-2 scale-[1.03] border-blue-400/60 bg-slate-800 shadow-2xl shadow-black/60 ring-1 ring-blue-400/40"
+                : "cursor-grab border-slate-700/60 bg-slate-800/90 shadow-sm transition-colors hover:border-slate-600 hover:bg-slate-800"
+            }`}
           >
-            {/* Header */}
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <p className="text-sm font-semibold text-white flex items-center gap-2">
-                  <Icon size={16} className={color} />
-                  {title}
-                </p>
-                <p className="text-xs text-slate-400">{tasks.length} tasks</p>
+            {/* Top row: status chip + actions */}
+            <div className="flex items-center justify-between">
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${column.chip}`}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${column.chipDot}`} />
+                {column.chipLabel}
+              </span>
+
+              <div className="flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditing(task._id);
+                  }}
+                  className="rounded-md p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white"
+                >
+                  <Pencil size={14} />
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteTask(task._id);
+                  }}
+                  className="rounded-md p-1.5 text-slate-400 hover:bg-red-500/15 hover:text-red-400"
+                >
+                  <Trash2 size={14} />
+                </button>
               </div>
             </div>
 
-            {/* Tasks */}
-            <div className="flex flex-col gap-3 overflow-y-hidden pr-1">
-              {tasks.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center mt-6">
-                  No tasks 🚀
-                </p>
-              ) : (
-                tasks.map((task, index) => (
-                  <Draggable
-                    key={task._id}
-                    draggableId={task._id}
-                    index={index}
+            <p className="mt-3 text-[15px] font-semibold leading-snug text-slate-100">
+              {task.title}
+            </p>
+
+            {task.description && (
+              <p className="mt-1 line-clamp-1 text-sm text-slate-400">
+                {task.description}
+              </p>
+            )}
+
+            {/* Assignee */}
+            <div className="mt-3.5 flex items-center justify-between gap-3">
+              <p className="text-sm text-slate-500">Assignee :</p>
+              <div className="flex min-w-0 items-center gap-2">
+                {assignee && (
+                  <p className="truncate text-xs text-slate-300">{assignee}</p>
+                )}
+                {assignee ? (
+                  <div
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-linear-to-br text-xs font-semibold text-white ${avatarColor(assignee)}`}
                   >
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        onClick={() => setSingleTask(task._id)}
-                        className="relative group bg-slate-900 border border-slate-700 rounded-xl p-4 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-200 cursor-pointer"
-                      >
-                        <p className="font-medium text-white">
-                          {task.title}
-                        </p>
-
-                        {task.description && (
-                          <p className="text-sm text-slate-400 mt-1 line-clamp-2">
-                            {task.description}
-                          </p>
-                        )}
-
-                        <div className="flex justify-between items-center mt-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-semibold">
-                              {task.assignedTo?.name?.charAt(0) || "U"}
-                            </div>
-                            <p className="text-xs text-slate-300">
-                              {task.assignedTo?.name || "Unassigned"}
-                            </p>
-                          </div>
-
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full font-medium ${
-                              task.priority === "high"
-                                ? "bg-red-500/20 text-red-400"
-                                : task.priority === "medium"
-                                ? "bg-yellow-500/20 text-yellow-400"
-                                : "bg-green-500/20 text-green-400"
-                            }`}
-                          >
-                            {task.priority}
-                          </span>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsEditing(task._id);
-                            }}
-                            className="hover:bg-slate-700 p-1 rounded"
-                          >
-                            <Pencil size={16} />
-                          </button>
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteTask(task._id);
-                            }}
-                            className="hover:bg-red-500/20 p-1 rounded"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </Draggable>
-                ))
-              )}
+                    {assignee.charAt(0).toUpperCase()}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <p className="text-xs">Unassigned</p>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-dashed border-slate-600">
+                      <User size={13} />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {provided.placeholder}
+            {/* Date + priority */}
+            <div className="mt-3 flex items-center justify-between">
+              <span
+                title="Created on"
+                className="flex items-center gap-1.5 text-sm text-slate-400"
+              >
+                <Calendar size={14} />
+                {task.createdAt
+                  ? new Date(task.createdAt).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "-"}
+              </span>
+
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-medium ${priority.pill}`}
+              >
+                {priority.label}
+              </span>
+            </div>
+          </div>
+        )}
+      </Draggable>
+    );
+  };
+
+  // COLUMN
+  const renderColumn = (title, tasks, status) => {
+    const column = columnStyle[status];
+
+    return (
+      <Droppable droppableId={status}>
+        {(provided, snapshot) => (
+          <div className="flex max-h-[80vh] min-h-[60vh] min-w-72 flex-1 basis-0 flex-col rounded-3xl border border-slate-800 bg-slate-800/30 p-4">
+            {/* Header */}
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className={`h-2.5 w-2.5 rounded-full ${column.dot}`} />
+                <p className="text-base font-semibold text-slate-100">{title}</p>
+                <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-indigo-500 px-1.5 text-xs font-semibold text-white">
+                  {tasks.length}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setAddStatus(status);
+                  setOpenForm(true);
+                }}
+                title={`Add task to ${title}`}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white"
+              >
+                <Plus size={18} />
+              </button>
+            </div>
+
+            {/* Tasks */}
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className={`flex min-h-28 flex-1 flex-col gap-3 overflow-y-auto rounded-2xl [scrollbar-color:#334155_transparent] [scrollbar-width:thin] transition-colors ${
+                snapshot.isDraggingOver ? `ring-1 ring-inset ${column.over}` : ""
+              }`}
+            >
+              {loading ? (
+                [0, 1].map((i) => (
+                  <div key={i} className="h-36 animate-pulse rounded-2xl bg-slate-800/70" />
+                ))
+              ) : tasks.length === 0 && !snapshot.isDraggingOver ? (
+                <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-700/70 py-10 text-center">
+                  <Inbox size={20} className="text-slate-600" />
+                  <p className="text-xs text-slate-500">Drop tasks here</p>
+                </div>
+              ) : (
+                tasks.map((task, index) => renderCard(task, index))
+              )}
+              {provided.placeholder}
+            </div>
           </div>
         )}
       </Droppable>
@@ -225,21 +343,37 @@ const KanbanBoard = ({ openForm, setOpenForm }) => {
   };
 
   return (
-    <div className="p-6 min-h-screen bg-slate-900">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-white">
-          Kanban Board
-        </h1>
+    <div className="bg-slate-900 pb-6">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-white">Board</h1>
+          <p className="mt-1 text-sm text-slate-400">
+            {data.length} tasks · {percent}% complete
+          </p>
+        </div>
+
+        <div className="w-48">
+          <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
+            <div
+              className="h-full rounded-full bg-linear-to-r from-blue-500 to-emerald-400 transition-all duration-500"
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex items-start gap-6 overflow-x-hidden  pb-4">
-          {renderColumn("TODO", todo, "todo", CheckSquare, "text-blue-400")}
-          {renderColumn("IN PROGRESS", inProgress, "in_progress", Loader, "text-yellow-400")}
-          {renderColumn("DONE", done, "done", CheckCircle, "text-green-400")}
+        <div className="flex items-stretch gap-4 overflow-x-auto pb-4">
+          {renderColumn("To do", todo, "todo")}
+          {renderColumn("In Progress", inProgress, "in_progress")}
+          {renderColumn("Done", done, "done")}
 
           {openForm && (
-            <AddTaskForm onClose={onClose} fetchTasks={fetchTasks} />
+            <AddTaskForm
+              onClose={onClose}
+              fetchTasks={fetchTasks}
+              defaultStatus={addStatus}
+            />
           )}
           {isEditing && (
             <EditTaskForm

@@ -15,7 +15,7 @@ const Tasks = () => {
 </div>
     }
   return (
-    <div className='relative p-6 mx-auto max-w-6xl' >
+    <div className='relative px-6 pt-6' >
       <div className="flex justify-between items-center mb-4">
     <p className='text-2xl font-semibold text-slate-100'>Tasks</p>
     <button onClick={()=>setOpenForm(true)} className='p-2 bg-blue-400  rounded-lg'>ADD TASK</button>

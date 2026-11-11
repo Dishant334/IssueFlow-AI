@@ -1,6 +1,29 @@
 import Comment from "../models/Comments.js";
 import { ai, AI_MODEL } from "../services/aiServices.js";
 
+const getText = (response) =>
+  response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+// removes markdown and labels (like "Title:" or "Description:") the model sometimes adds
+// and keeps the text inside the 200 character limit of the task description
+const cleanDescription = (text) => {
+  let clean = text
+    .replace(/\*\*|__|`/g, "")
+    .replace(/^\s*title\s*:.*$/gim, "")
+    .replace(/^\s*description\s*:\s*/gim, "")
+    .replace(/^[\s>*#-]+/gm, "")
+    .replace(/\s+/g, " ")
+    .replace(/^["“']+|["”']+$/g, "")
+    .trim();
+
+  if (clean.length > 200) {
+    const cut = clean.slice(0, 200);
+    const stop = cut.lastIndexOf(". ");
+    clean = stop > 80 ? cut.slice(0, stop + 1) : cut.slice(0, cut.lastIndexOf(" ")).trim();
+  }
+  return clean;
+};
+
 export const generateDescription = async (req, res) => {
   try {
     const { title, description } = req.body;
@@ -16,15 +39,26 @@ export const generateDescription = async (req, res) => {
 
     const trimmedDesc = description?.trim();
 
-    const prompt = `You are an AI assistant for a project management tool. Convert the following rough issue input into a short and clear issue description. Keep it concise (2-3 lines). Use simple and professional language. Do not over-explain. Avoid unnecessary assumptions.Just give the output no extra comments. Input: title: ${trimmedTitle} description: ${trimmedDesc || ""}`;
+    const prompt = `You write the description for a task in a project management app.
+Use the task title, and the rough notes if the user already typed some, to write a clear description.
+
+Rules:
+- Write 1 or 2 plain sentences, 180 characters at most.
+- Say what has to be done and what a good result looks like.
+- Do not repeat the title word for word.
+- Do not make up facts, names or numbers that are not in the input.
+- No markdown, no bullet points, no quotes, and no labels like "Title:" or "Description:".
+- Reply with only the description text.
+
+Task title: ${trimmedTitle}
+Rough notes: ${trimmedDesc || "none"}`;
 
     const response = await ai.models.generateContent({
       model: AI_MODEL,
       contents: prompt,
     });
 
-    const text =
-      response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const text = cleanDescription(getText(response));
 
     if (!text) {
       return res
@@ -53,21 +87,24 @@ export const suggestPriority = async (req, res) => {
     }
 
     const trimmedDesc = description?.trim();
-    if (!trimmedDesc) {
-      return res
-        .status(400)
-        .json({ message: "Please enter a valid description" });
-    }
 
-    const prompt = `You are an AI assistant for a project management tool. Analyze the issue based on its title and description and suggest a priority level. Rules: Respond with only one word: LOW, MEDIUM, or HIGH. Do not explain your answer. Low: minor issue, Medium: important issue but not blocking, High: critical bug, blocking issue, or security issue. Input: title: ${trimmedTitle}, description: ${trimmedDesc}`;
+    const prompt = `You decide the priority of a task in a project management app.
+
+HIGH: something is broken for users, it blocks other work, it is a security or data problem, or it has a hard deadline.
+MEDIUM: an important feature or fix that should be done soon, but nothing is blocked.
+LOW: a nice to have, a cosmetic change, a cleanup or a small improvement.
+
+Reply with exactly one word: LOW, MEDIUM or HIGH. No punctuation and no explanation.
+
+Task title: ${trimmedTitle}
+Task description: ${trimmedDesc || "none"}`;
 
     const response = await ai.models.generateContent({
       model: AI_MODEL,
       contents: prompt,
     });
 
-    const text =
-      response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const text = getText(response);
 
     if (!text) {
       return res
@@ -75,11 +112,9 @@ export const suggestPriority = async (req, res) => {
         .json({ message: "AI returned empty response" });
     }
 
-    let result = text.trim().toUpperCase();
-
-    if (!["LOW", "MEDIUM", "HIGH"].includes(result)) {
-      result = "MEDIUM";
-    }
+    // the answer can come back as "**HIGH**" or "High." so find the word inside it
+    const match = text.toUpperCase().match(/\b(LOW|MEDIUM|HIGH)\b/);
+    const result = match ? match[1] : "MEDIUM";
 
     return res.status(200).json({ priority: result });
   } catch (err) {
