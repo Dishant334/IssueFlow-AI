@@ -128,7 +128,7 @@ const AddTaskForm = ({ onClose, fetchTasks, defaultStatus = "" }) => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 40 }}
           transition={{ duration: 0.25 }}
-          className="w-[95%] max-w-3xl bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl"
+          className="w-[95%] max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-6 shadow-2xl"
         >
           {/* Header */}
           <h2 className="text-2xl font-semibold text-white">

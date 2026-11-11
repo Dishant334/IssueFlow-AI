@@ -26,11 +26,11 @@ const CreateWorkspace = () => {
    }
 
   return (
-    <div className="min-h-screen flex items-center justify-center
+    <div className="min-h-screen flex items-center justify-center px-4
                     bg-linear-to-br from-blue-300 to-blue-900
                     transition-all duration-500">
       
-      <div className=" bg-white/95 backdrop-blur-sm rounded-3xl p-10 w-105 shadow-[0_25px_70px_rgba(0,0,0,0.25)]">
+      <div className=" bg-white/95 backdrop-blur-sm rounded-3xl p-6 sm:p-10 w-105 max-w-full shadow-[0_25px_70px_rgba(0,0,0,0.25)]">
         <h2 className="text-2xl font-semibold  text-center">
          No Workspaces Yet
         </h2>
@@ -41,7 +41,7 @@ const CreateWorkspace = () => {
     onChange={handleInput}
     type="text"
     placeholder="Workspace name"
-    className=" w-72  px-4 py-2  rounded-full  border border-gray-300 text-center focus:outline-none  focus:ring-2 focus:ring-blue-400"/>
+    className=" w-full max-w-72  px-4 py-2  rounded-full  border border-gray-300 text-center focus:outline-none  focus:ring-2 focus:ring-blue-400"/>
 
     <button type="Submit" className='bg-blue-800 cursor-pointer px-4 py-2 rounded-lg hover:py-3'>Create Now!</button>
 </form>

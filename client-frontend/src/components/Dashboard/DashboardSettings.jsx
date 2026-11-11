@@ -117,45 +117,45 @@ useEffect(()=>{fetchData()},[workspaceid])
 </div>
    }
   return (
-    <div className='min-h-screen p-4 flex flex-col gap-8'>
+    <div className='min-h-screen p-4 sm:p-6 flex flex-col gap-6'>
       
       {/* Header */}
-       <div className='m-4'>
-        <p className='font-semibold text-3xl text-slate-100'>Settings</p>
+       <div>
+        <p className='font-semibold text-2xl sm:text-3xl text-slate-100'>Settings</p>
         <p className='text-sm text-slate-400 mt-1 max-w-md'>Manage your workspace settings and members</p>
       </div>
 
-      <div className=' space-y-8'>
+      <div className='space-y-6'>
 
         {/* User Details */}
-        <div>
+        <div className='rounded-2xl border border-slate-800 bg-slate-800/30 p-5 sm:p-6'>
           <p className='text-lg text-slate-100 font-semibold mb-4'>User Details</p>
 
-          <div className='flex items-end gap-10 flex-wrap'>
+          <div className='flex items-end gap-4 flex-wrap'>
             
-            <div className='flex flex-col'>
-              <label className='text-xs text-gray-500 mb-1'>Name</label>
+            <div className='flex flex-col w-full sm:w-auto'>
+              <label className='text-xs text-slate-400 mb-1.5'>Name</label>
               <input
                 type="text"
                 placeholder='Enter name'
                 onChange={handleNameInput}
                 value={name}
-                className='px-3 py-2 w-64 bg-gray-300 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-400 outline-none'
+                className='px-3 py-2 w-full sm:w-64 bg-slate-800 text-slate-100 placeholder:text-slate-500 rounded-lg border border-slate-600 focus:ring-2 focus:ring-blue-500 outline-none'
               />
             </div>
 
-            <div className='flex flex-col'>
-              <label className='text-xs text-gray-500 mb-1'>Email</label>
+            <div className='flex flex-col w-full sm:w-auto'>
+              <label className='text-xs text-slate-400 mb-1.5'>Email</label>
               <input
                 type="text"
                 placeholder='Enter email'
                 value={email}
-                className='px-3 py-2 w-64 bg-gray-200 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-400 outline-none'
+                className='px-3 py-2 w-full sm:w-64 bg-slate-800/50 text-slate-400 rounded-lg border border-slate-700 cursor-not-allowed outline-none'
                 disabled
               />
             </div>
 
-            <button onClick={updateName} className='h-10 px-4 rounded-md bg-linear-to-r from-blue-900 to-blue-600 text-white text-sm font-medium hover:opacity-90 transition'>
+            <button onClick={updateName} className='h-10 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium cursor-pointer transition'>
               Update Profile
             </button>
 
@@ -163,19 +163,19 @@ useEffect(()=>{fetchData()},[workspaceid])
         </div>
 
         {/* Workspace Details */}
-        <div>
-          <div className='flex justify-between items-center'>
+        <div className='rounded-2xl border border-slate-800 bg-slate-800/30 p-5 sm:p-6'>
+          <div className='flex flex-wrap justify-between items-center gap-2'>
             <h1 className='text-lg font-semibold text-slate-100'>Workspace Details</h1>
 
-            <div className='text-xs text-gray-500 text-right mr-12'>
+            <div className='text-xs text-slate-500 sm:text-right'>
               <p>Created By: {detail.workspacecreating || '--'} </p>
               <p>Created On: {detail.workspacecreatedOn ||'--'}</p>
             </div>
           </div>
 
-          <div className='flex items-end gap-10 mt-4 flex-wrap'>
-            <div className='flex flex-col'>
-              <label className='text-xs text-gray-500 mb-1'>
+          <div className='flex items-end gap-4 mt-4 flex-wrap'>
+            <div className='flex flex-col w-full sm:w-auto'>
+              <label className='text-xs text-slate-400 mb-1.5'>
                 Workspace Name
               </label>
               <input
@@ -183,42 +183,42 @@ useEffect(()=>{fetchData()},[workspaceid])
                 placeholder='Workspace name'
                 value={workspaceName}
                 onChange={handleWorkspaceInput}
-                className='px-3 py-2 w-80 bg-gray-300 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-400 outline-none'
+                className='px-3 py-2 w-full sm:w-80 bg-slate-800 text-slate-100 placeholder:text-slate-500 rounded-lg border border-slate-600 focus:ring-2 focus:ring-blue-500 outline-none'
               />
             </div>
 
-            <button onClick={updateWorkspace} className='h-10 px-4 rounded-md bg-linear-to-r from-blue-900 to-blue-600 text-white text-sm font-medium hover:opacity-90 transition'>
+            <button onClick={updateWorkspace} className='h-10 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium cursor-pointer transition'>
               Save Changes
             </button>
           </div>
         </div>
 
         {/* Danger Zone */}
-        <div className=' bg-red-50 border border-red-200 rounded-xl mx-10 p-8 '>
+        <div className='rounded-2xl border border-red-500/30 bg-red-500/10 p-5 sm:p-6'>
           
           {/* Header */}
           <div className="flex items-center gap-2">
-            <TriangleAlert className="text-red-700" size={22} />
-            <span className="text-xl font-semibold text-red-700">
+            <TriangleAlert className="text-red-400" size={22} />
+            <span className="text-xl font-semibold text-red-400">
               Danger Zone
             </span>
           </div>
 
           {/* Description */}
-          <p className='mt-4 text-sm text-gray-700 leading-relaxed max-w-xl'>
+          <p className='mt-4 text-sm text-slate-300 leading-relaxed max-w-xl'>
             The following actions are destructive and cannot be undone. Please be certain before proceeding.
           </p>
-          <p className='text-sm text-gray-700'>
+          <p className='text-sm text-slate-400'>
             Leaving a workspace will revoke all your access immediately.
           </p>
 
           {/* Buttons */}
-          <div className='mt-6 flex gap-4'>
-            <button onClick={leaveWorkspace} className='text-red-700 font-medium px-4 py-2 border border-red-300 rounded-md hover:bg-red-100 transition'>
+          <div className='mt-6 flex flex-wrap gap-3'>
+            <button onClick={leaveWorkspace} className='text-red-400 font-medium px-4 py-2 border border-red-500/40 rounded-lg hover:bg-red-500/10 cursor-pointer transition'>
               Leave Workspace
             </button>
 
-            <button onClick={deleteWorkspace} className='text-white font-medium px-4 py-2 bg-red-700 rounded-md hover:bg-red-800 transition'>
+            <button onClick={deleteWorkspace} className='text-white font-medium px-4 py-2 bg-red-600 rounded-lg hover:bg-red-500 cursor-pointer transition'>
               Delete Workspace
             </button>
           </div>

@@ -51,7 +51,7 @@ const InviteForm = ({ setShowInviteForm, setRefresh }) => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 40 }}
           transition={{ duration: 0.25 }}
-          className="w-full max-w-md mx-4 bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-xl"
+          className="w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-6 shadow-xl"
         >
           {/* Header */}
           <h2 className="text-xl font-semibold text-white">

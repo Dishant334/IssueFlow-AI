@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useState } from 'react'
 import { Link, Outlet, useLocation, useParams } from 'react-router-dom'
-import {ChevronDown, CirclePlus, FolderKanban, House, StickyNote, User} from 'lucide-react'
+import {ChevronDown, CirclePlus, FolderKanban, House, Menu, StickyNote, User, X} from 'lucide-react'
 import Workspace from '../components/Dashboard/Workspace'
 import { addWorkspace, getWorkspaces } from '../apiHelper/workspace'
 import socket from '../socket'
@@ -13,6 +13,7 @@ const Dashboar = () => {
   const location=useLocation()
   const [title,setTitle]=useState('')
   const [name,setName]=useState('')
+  const [menuOpen,setMenuOpen]=useState(false)   // the sidebar is a drawer on small screens
   const [mode,setMode]=useState(localStorage.getItem('theme')==='light' ? 'light' : 'dark')
   const toggleMode=()=>{
     const next=mode==='dark' ? 'light' : 'dark'
@@ -100,8 +101,10 @@ useEffect(() =>{allWorkspaces()},[reload])
 
   return (
     <div className={`theme-ember ${mode==='light' ? 'theme-light' : ''} relative flex`}>
+      {menuOpen && <div onClick={()=>setMenuOpen(false)} className='fixed inset-0 z-30 bg-black/60 lg:hidden'></div>}
       {/*left sidebar*/}
-       <div className='w-1/7 min-h-screen bg-slate-950 px-4 h-screen sticky top-0 '>
+       <div className={`fixed inset-y-0 left-0 z-40 w-64 overflow-y-auto bg-slate-950 px-4 transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:w-1/7 lg:min-w-44 lg:shrink-0 lg:translate-x-0 ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <button onClick={()=>setMenuOpen(false)} aria-label='Close menu' className='absolute right-3 top-3 text-slate-400 hover:text-white lg:hidden'><X size={20}/></button>
        {/*Name+Avatar*/}
           <div onClick={()=>setModel((prev)=>!prev)}  className='flex cursor-pointer text-sm justify-center mt-8'>
             <div className='flex text-gray-300 font-semibold gap-1'>
@@ -119,7 +122,7 @@ useEffect(() =>{allWorkspaces()},[reload])
             <Workspace workspaces={workspaces}/>
             </div>  
         {/*buttons*/}
-          <div className='flex flex-col gap-3'>
+          <div onClick={()=>setMenuOpen(false)} className='flex flex-col gap-3'>
             <Link  className={isActive('home') ? `${activeState}`:`${inactiveState}`}to="home"><div  className="flex items-center gap-2"><House size={18}/> Home</div></Link>
             <Link  className={isActive('tasks')? `${activeState}`:`${inactiveState}`}to="tasks"><div  className="flex items-center gap-2"><StickyNote  size={18}/> My Tasks</div></Link>
             <Link  className={isActive('projects')?`${activeState}`:`${inactiveState}`} to="projects"><div  className="flex items-center gap-2"><FolderKanban  size={18}/> My Projects</div></Link>
@@ -128,11 +131,14 @@ useEffect(() =>{allWorkspaces()},[reload])
           </div>
        </div>
       {/*right content*/}
-      <div className='w-6/7 min-h-screen bg-slate-900'>
-      
-      
-       {openForm ? <div onClick={()=>setOpenForm(false)} className='fixed z-20 flex items-center justify-center min-h-3/4 min-w-3/4 backdrop:blur-md'>
-<form onSubmit={handleNewWorkspaceSubmit} onClick={(e)=>e.stopPropagation()} className=" flex flex-col w-96 p-8 rounded-2xl bg-white shadow-lg shadow-indigo-200/40 transition-all duration-300 hover:shadow-xl">
+      <div className='min-h-screen min-w-0 flex-1 bg-slate-900'>
+      {/*top bar, only on small screens*/}
+      <div className='sticky top-0 z-30 flex items-center gap-3 border-b border-slate-800 bg-slate-950 px-4 py-3 lg:hidden'>
+        <button onClick={()=>setMenuOpen(true)} aria-label='Open menu' className='text-slate-300 hover:text-white'><Menu size={22}/></button>
+        <p className='font-semibold text-slate-100'>IssueFlow</p>
+      </div>
+       {openForm ? <div onClick={()=>setOpenForm(false)} className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4'>
+<form onSubmit={handleNewWorkspaceSubmit} onClick={(e)=>e.stopPropagation()} className=" flex flex-col w-96 max-w-full p-8 rounded-2xl bg-white shadow-lg shadow-indigo-200/40 transition-all duration-300 hover:shadow-xl">
   <p className="text-center text-xl font-semibold text-indigo-600 mb-6">
     Add New Workspace </p>
   <input value={title} onChange={handleNewWorkspaceInput}

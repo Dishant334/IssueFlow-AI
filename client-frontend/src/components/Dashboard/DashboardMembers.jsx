@@ -98,7 +98,7 @@ const DashboardMembers = () => {
    }
   return (
     <div   className=' gap-6 items-center'>
-       <div className='m-4  flex justify-between'>
+       <div className='m-4 flex flex-wrap justify-between gap-3'>
         <div>
         <p className='font-semibold text-3xl text-slate-100'>Workspace Members</p>
         <p className='text-sm text-slate-400 mt-1 max-w-md'>Manage your teams and permissions</p>
@@ -123,7 +123,7 @@ const DashboardMembers = () => {
     {members.map(m => (
       <div
         key={m.userId}
-        className="flex items-center justify-between px-3 py-3 rounded-lg hover:bg-slate-700/40 transition"
+        className="flex flex-wrap items-center justify-between gap-3 px-3 py-3 rounded-lg hover:bg-slate-700/40 transition"
       >
 
         {/* LEFT */}
@@ -134,7 +134,7 @@ const DashboardMembers = () => {
 
           <div>
             <p className="text-white text-sm font-medium">{m.name}</p>
-            <p className="text-slate-400 text-xs">{m.email}</p>
+            <p className="text-slate-400 text-xs break-all">{m.email}</p>
           </div>
         </div>
 
@@ -200,7 +200,7 @@ const DashboardMembers = () => {
     {invites.map(m => (
       <div
         key={m._id}
-        className="flex items-center justify-between px-3 py-3 rounded-lg hover:bg-slate-700/40 transition"
+        className="flex flex-wrap items-center justify-between gap-3 px-3 py-3 rounded-lg hover:bg-slate-700/40 transition"
       >
 
         {/* LEFT */}

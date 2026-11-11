@@ -59,7 +59,7 @@ const Setting = () => {
 </div>
     }
   return (
-     <div className='p-6 mx-auto max-w-6xl'>
+     <div className='p-4 sm:p-6 mx-auto max-w-6xl'>
       <div className="flex justify-between items-center mb-4">
     <p className='text-2xl font-semibold text-slate-100'>Project Settings</p>  
       </div>
@@ -114,7 +114,7 @@ const Setting = () => {
  <div>
 <div className='text-red-700 text-xl mx-4'>Danger Zone</div>
 <hr className="border-t border-gray-200 my-2 mx-4" />
-    <div className='flex justify-evenly my-4'>
+    <div className='flex flex-wrap justify-evenly gap-3 my-4'>
 
   {singleProject?.projectStatus === "active"?(
   <div className="flex items-center">

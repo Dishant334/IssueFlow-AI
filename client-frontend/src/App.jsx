@@ -7,6 +7,8 @@ import { Toaster } from 'react-hot-toast'
 import './App.css'
 const Login = lazy(() => import('./page/Login.jsx'))
 const Register = lazy(() => import('./page/Register.jsx'))
+const ForgotPassword = lazy(() => import('./page/ForgotPassword.jsx'))
+const ResetPassword = lazy(() => import('./page/ResetPassword.jsx'))
 const Dashboar = lazy(() => import('./page/Dashboar.jsx'))
 const DashboardHome = lazy(() => import('./components/Dashboard/DashboardHome.jsx'))
 const DashboardAllProject = lazy(() => import('./components/Dashboard/DashboardAllProject.jsx'))
@@ -31,6 +33,8 @@ function App() {
       <Route path='/' element={<Home/>}/>
       <Route path='/login' element={<Login/>}/>
      <Route path='/register' element={<Register/>}/>
+     <Route path='/forgot-password' element={<ForgotPassword/>}/>
+     <Route path='/reset-password/:token' element={<ResetPassword/>}/>
      {/*Protected Route*/}
      <Route element={<ProtectedRoute/>}>
      <Route path='/createWorkspace' element={<CreateWorkspace/>}/>    

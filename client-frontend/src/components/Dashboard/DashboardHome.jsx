@@ -121,7 +121,7 @@ const DashboardHome = () => {
       </div>
     }
   return (
-    <div className='relative overflow-x-clip p-6'>
+    <div className='relative overflow-x-clip p-4 sm:p-6'>
       {/* Lamp: hangs from the top right, pull the cord to switch dark / light */}
       <ThemeLamp mode={mode} toggle={toggleMode} className='absolute right-6 top-0 z-20 md:right-10' />
 

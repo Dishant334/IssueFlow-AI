@@ -23,10 +23,10 @@ const Members = () => {
     }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto text-white">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto text-white">
 
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
         <p className="text-2xl font-semibold">Members</p>
 
         {admin && (
@@ -40,10 +40,10 @@ const Members = () => {
       </div>
 
       {/* Card Container */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-md overflow-hidden">
+      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-md overflow-x-auto">
 
         {/* Table Header */}
-        <div className="grid grid-cols-5 px-6 py-3 text-sm text-slate-400 border-b border-slate-700">
+        <div className="grid grid-cols-5 min-w-[640px] px-6 py-3 text-sm text-slate-400 border-b border-slate-700">
           <p>Name</p>
           <p>Joined</p>
           <p>Role</p>
@@ -55,7 +55,7 @@ const Members = () => {
         {singleProject?.projectMembers?.map((m) => (
           <div
             key={m.userId}
-            className="grid grid-cols-5 items-center px-6 py-4 border-b border-slate-700 last:border-none hover:bg-slate-700/40 transition"
+            className="grid grid-cols-5 min-w-[640px] items-center px-6 py-4 border-b border-slate-700 last:border-none hover:bg-slate-700/40 transition"
           >
 
             {/* Name + Avatar */}

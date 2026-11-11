@@ -64,7 +64,7 @@ const SingleTaskModal = ({onClose,taskId}) => {
   >
 
     {/* HEADER */}
-    <div className="p-6 border-b border-slate-700">
+    <div className="p-4 sm:p-6 border-b border-slate-700">
       <h1 className="text-2xl font-semibold text-white">
         {task.title}
       </h1>
@@ -77,7 +77,7 @@ const SingleTaskModal = ({onClose,taskId}) => {
     <div className="flex flex-1 overflow-hidden">
 
       {/* LEFT SIDE */}
-      <div className="flex-1 p-6 overflow-y-auto space-y-6">
+      <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6">
 
         {/* Meta Info */}
         <div className="grid grid-cols-2 gap-4 text-sm">

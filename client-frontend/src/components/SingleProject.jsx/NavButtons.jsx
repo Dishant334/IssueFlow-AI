@@ -17,7 +17,7 @@ const NavButtons = ({loading}) => {
 
       if (loading) {
     return (
-      <div className="flex gap-4 px-12 mt-4 animate-pulse justify-center">
+      <div className="flex gap-4 px-4 sm:px-12 mt-4 animate-pulse justify-center">
         <div className="h-10 w-24 bg-slate-700 rounded-full"></div>
         <div className="h-10 w-24 bg-slate-700 rounded-full"></div>
         <div className="h-10 w-24 bg-slate-700 rounded-full"></div>
@@ -27,8 +27,8 @@ const NavButtons = ({loading}) => {
   }
 
   return (
-    <div className="flex justify-center  my-4">
-      <div className="flex gap-6 bg-slate-800 p-3 rounded-2xl shadow-lg ">
+    <div className="flex justify-start sm:justify-center my-4 px-4 overflow-x-auto">
+      <div className="flex shrink-0 gap-2 sm:gap-6 bg-slate-800 p-3 rounded-2xl shadow-lg ">
 
         <Link
           to="projecto"
