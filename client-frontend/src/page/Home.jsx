@@ -1,4 +1,7 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { getWorkspaces } from '../apiHelper/workspace'
+import Loading from '../components/Loading'
 import Banner from '../components/Banner'
 import Hero from '../components/Hero'
 import Features from '../components/Features'
@@ -12,7 +15,27 @@ import WorkFlow from '../components/WorkFlow'
 const Home = () => {
       const featuresRef = useRef(null)
       const contactRef = useRef(null)
-     
+      const navigate=useNavigate()
+      //if the user has a refresh token he is still logged in, so skip the home page
+      const [checking,setChecking]=useState(!!localStorage.getItem('refreshToken'))
+
+     useEffect(()=>{
+      if(!checking) return
+      const goToDashboard=async()=>{
+        try{
+          const workspaceData=await getWorkspaces()
+          if(workspaceData.length===0){
+            navigate('/createWorkspace',{replace:true})
+          }else{
+            navigate(`/workspace/${workspaceData[0].id}`,{replace:true})
+          }
+        }catch{
+          setChecking(false)
+        }
+      }
+      goToDashboard()
+     },[])
+
      useEffect(() => {
   window.history.scrollRestoration = "manual";
   window.scrollTo({
@@ -21,7 +44,9 @@ const Home = () => {
     behavior: "instant",
   });
 }, []);
- 
+
+  if(checking) return <Loading/>
+
   return (
     <div>
       <Hero
