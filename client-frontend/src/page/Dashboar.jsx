@@ -30,7 +30,9 @@ const Dashboar = () => {
 }
  const navigate=useNavigate()
 const handleLogout=()=>{
+  api.post('/api/users/logout',{refreshToken:localStorage.getItem('refreshToken')})   //removes it from db
   localStorage.removeItem('token')
+  localStorage.removeItem('refreshToken')
   navigate('/')
 }
 

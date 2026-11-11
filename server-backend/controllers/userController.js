@@ -3,7 +3,11 @@ import User from "../models/User.js"
 import jwt from 'jsonwebtoken'
 
 const generateToken= (userId,role)=>{
-    return jwt.sign({userId,role},process.env.JWT_SECRET,{expiresIn:'7d'})
+    return jwt.sign({userId,role},process.env.JWT_SECRET,{expiresIn:'15m'})
+}
+
+const generateRefreshToken= (userId)=>{
+    return jwt.sign({userId},process.env.JWT_REFRESH_SECRET,{expiresIn:'7d'})
 }
 
 // :POST /api/users/register
@@ -57,10 +61,45 @@ if (!isMatch) {
 
 
      const token=generateToken(user._id,user.role)
+     const refreshToken=generateRefreshToken(user._id)
+     user.refreshToken=refreshToken                  //saved in db so logout can remove it
+     await user.save()
      user.password=undefined;
 
-     return res.status(200).json({message:"Login Successful",token,user})
+     return res.status(200).json({message:"Login Successful",token,refreshToken,user})
     }catch(err){
         return res.status(500).json({message:"Internal error",err})
+    }
+}
+
+// :POST /api/users/refresh
+export const refreshAccessToken=async(req,res)=>{
+    try{
+    const {refreshToken}=req.body
+
+    if(!refreshToken) return res.status(401).json({message:"Unauthorized"})
+
+    const decoded=jwt.verify(refreshToken,process.env.JWT_REFRESH_SECRET)
+
+    const user=await User.findById(decoded.userId).select("+refreshToken")
+    if(!user || user.refreshToken!==refreshToken){         //logged out or token replaced by a new login
+        return res.status(401).json({message:"Unauthorized"})
+    }
+
+    const token=generateToken(user._id,user.role)
+    return res.status(200).json({token})
+    }catch(err){
+        return res.status(401).json({message:"Unauthorized"})
+    }
+}
+
+// :POST /api/users/logout
+export const logoutUser=async(req,res)=>{
+    try{
+    const {refreshToken}=req.body
+    await User.findOneAndUpdate({refreshToken},{refreshToken:null})
+    return res.status(200).json({message:"Logged out"})
+    }catch(err){
+        return res.status(500).json({message:"Internal error"})
     }
 }
