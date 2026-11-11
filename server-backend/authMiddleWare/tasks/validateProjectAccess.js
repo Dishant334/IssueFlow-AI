@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-import Project from "../../models/Projects.js";
+import { getProjectDoc } from "../../services/dataCache.js";
 
 // the project must be in this workspace, and the user must be a member of the project (or a workspace admin)
 const validateProjectAccess=async(req,res,next)=>{
@@ -7,7 +7,7 @@ const validateProjectAccess=async(req,res,next)=>{
     const {userId}=req.user
     const workspace=req.workspace
     if(!mongoose.isValidObjectId(projectId)) return res.status(400).json({message:"Invalid project id"})
-    const project=await Project.findById(projectId)
+    const project=await getProjectDoc(workspace._id,projectId)   //cached for a short time, cleared when the project changes
     if(!project) return res.status(404).json({message:"Project do not exist"})
     const projectInWorkspace=project.workspaceId.toString()===workspace._id.toString()
    if(!projectInWorkspace) return res.status(404).json({message:"Project Not In Workspace"})

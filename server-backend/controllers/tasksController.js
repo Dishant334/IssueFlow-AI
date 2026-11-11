@@ -2,6 +2,8 @@ import { Task } from "../models/Tasks.js";
 import Project from "../models/Projects.js";
 import Comment from "../models/Comments.js";
 import { sendError } from "../utils/handleError.js";
+import { keyOf, remember } from "../utils/cache.js";
+import { tasksChanged } from "../services/dataCache.js";
 
 const allowedStatus = ["todo", "in_progress", "done"];
 const allowedPriority = ["low", "medium", "high"];
@@ -75,6 +77,8 @@ const createTask = async (req, res) => {
       position: lastTask ? lastTask.position + 1000 : 1000,
     });
 
+    tasksChanged(workspace._id, project._id)   //the cached task lists are old now
+
     return res.status(201).json({
       message: "Task created successfully",
       task: newTask,
@@ -89,10 +93,14 @@ const getAllTasksInProject = async (req, res) => {
   try {
     const project = req.project;
 
-    const tasks = await Task.find({ project: project._id })
-      .populate("assignedTo", "name email")
-      .populate("createdBy", "name email")
-      .sort({ status: 1, position: 1 });
+    // the board loads this again after every action, so it is kept for a short time and cleared when a task changes
+    const tasks = await remember(keyOf([`ws:${req.workspace._id}`, `tasks:${project._id}`], "list"), 30, () =>
+      Task.find({ project: project._id })
+        .populate("assignedTo", "name email")
+        .populate("createdBy", "name email")
+        .sort({ status: 1, position: 1 })
+        .lean()
+    );
 
     return res.status(200).json({ tasks });
   } catch (err) {
@@ -189,6 +197,8 @@ const updateTask = async (req, res) => {
       { new: true, runValidators: true }
     );
 
+    tasksChanged(workspace._id, project._id)
+
     return res.status(200).json({
       message: "Task updated successfully",
       task: updatedTask,
@@ -234,6 +244,7 @@ const deleteTask = async (req, res) => {
 
     await Comment.deleteMany({ taskId });   //its comments go with it
     await Task.findByIdAndDelete(taskId);
+    tasksChanged(workspace._id, project._id)
 
     return res.status(204).send();
   } catch (err) {
@@ -292,6 +303,7 @@ const moveTask = async (req, res) => {
 
     await task.save();
     const rebalanced = await rebalanceIfNeeded(task);
+    tasksChanged(workspace._id, project._id)
 
     return res.status(200).json({
       message: "Task moved successfully",
@@ -362,6 +374,7 @@ const moveTaskWorkspace = async (req, res) => {
 
     await task.save();
     const rebalanced = await rebalanceIfNeeded(task);
+    tasksChanged(workspace._id, project._id)
 
     return res.status(200).json({
       message: "Task moved successfully",
@@ -379,17 +392,20 @@ const getMyTasks = async (req, res) => {
     const workspace = req.workspace;
     const { userId } = req.user;
 
-    // only tasks of projects that still exist
-    const projectIds = await Project.find({ workspaceId: workspace._id }).distinct("_id");
+    // only tasks of projects that still exist. Kept for a short time, cleared when a task or a project of the workspace changes
+    const tasks = await remember(keyOf([`ws:${workspace._id}`, `wstasks:${workspace._id}`], `mine:${userId}`), 30, async () => {
+      const projectIds = await Project.find({ workspaceId: workspace._id }).distinct("_id");
 
-    const tasks = await Task.find({
-      workspace: workspace._id,
-      assignedTo: userId,
-      project: { $in: projectIds },
-    })
-      .populate("assignedTo", "name email")
-      .populate("createdBy", "name email")
-      .sort({ status: 1, position: 1 });
+      return Task.find({
+        workspace: workspace._id,
+        assignedTo: userId,
+        project: { $in: projectIds },
+      })
+        .populate("assignedTo", "name email")
+        .populate("createdBy", "name email")
+        .sort({ status: 1, position: 1 })
+        .lean();
+    });
 
     return res.status(200).json({
       message: "My tasks fetched successfully",

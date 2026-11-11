@@ -1,5 +1,7 @@
 import Workspace from "../models/Workspace.js";
 import { sendError } from "../utils/handleError.js";
+import { keyOf, remember } from "../utils/cache.js";
+import { workspaceChanged } from "../services/dataCache.js";
 
 
 
@@ -19,6 +21,8 @@ const addWorkspace=async(req,res)=>{
         members: [{user:currUser,role:"admin"}]
     })    
 
+    workspaceChanged(newworkspace._id)   //the lists of workspaces are old now
+
     res.status(200).json({message:"Workspace created successfully",newworkspace})
 }catch(err){
     return sendError(res,err)
@@ -30,28 +34,30 @@ const getWorkspaces = async (req, res) => {
   try {
     const { userId } = req.user;
 
-    // find all workspaces where user is a member
-    const workspaces = await Workspace.find({   //return a array
-      "members.user": userId
-    }).select("name members");
+    // the sidebar asks for this on every page, and it only changes when someone joins, leaves or renames a workspace
+    const result = await remember(keyOf(["memberships"], `workspaces:${userId}`), 60, async () => {
+      // find all workspaces where user is a member
+      const workspaces = await Workspace.find({   //return a array
+        "members.user": userId
+      }).select("name members").lean();
 
-    // return only what frontend needs
-    const result = workspaces.map((workspace) => {   
-      const myMembership = workspace.members.find(    //from members find role 
-        (m) => m.user.toString() === userId
-      );
-      
+      // return only what frontend needs
+      return workspaces.map((workspace) => {
+        const myMembership = workspace.members.find(    //from members find role 
+          (m) => m.user.toString() === userId
+        );
 
-      return {
-        id: workspace._id,
-        name: workspace.name,
-        role: myMembership.role
-      };
+        return {
+          id: workspace._id,
+          name: workspace.name,
+          role: myMembership.role
+        };
+      });
     });
 
     res.status(200).json(result);
-  } catch(err){
-    return sendError(res,err)
+  } catch (err) {
+    return sendError(res, err, "Internal error occurred")
   }
 };
 

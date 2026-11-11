@@ -3,6 +3,8 @@ import Workspace from "../models/Workspace.js";
 import { Task } from "../models/Tasks.js";
 import Comment from "../models/Comments.js";
 import { sendError } from "../utils/handleError.js";
+import { keyOf, remember } from "../utils/cache.js";
+import { getWorkspaceDoc, projectChanged } from "../services/dataCache.js";
 
 // GET /projects/:projectId
 const getproject = async (req, res) => {
@@ -95,6 +97,8 @@ const getproject = async (req, res) => {
       createdBy:userId
   })
 
+  projectChanged(workspaceid)   //the cached project lists are old now
+
   return res.status(201).json({message:"Project created successfully"})
 }catch(err){
     return sendError(res,err)
@@ -173,6 +177,8 @@ const addMembers = async (req, res) => {
     });
 
     await project.save();
+
+    projectChanged(project.workspaceId)   //the new members must get in at once
 
     return res.status(201).json({
       message: "Members added successfully",
@@ -273,6 +279,8 @@ const updateRole = async (req, res) => {
     targetMember.role = role;
     await project.save();
 
+    projectChanged(project.workspaceId)
+
     return res.status(200).json({
       message: "Role updated successfully",
     });
@@ -302,6 +310,7 @@ const deleteMember=async(req,res)=>{
   project.members = project.members.filter(m=>m.user.toString() !=memberId.toString())
   await project.save()
   await Task.updateMany({project:project._id,assignedTo:memberId},{$unset:{assignedTo:1}})   //he cannot open the project anymore
+  projectChanged(project.workspaceId)   //so the cached copies must not let him in
   return res.status(200).json({message:"Member deleted successfully"})
 }catch(err){
     return sendError(res,err)
@@ -338,6 +347,7 @@ const projectdetailUpdate=async(req,res)=>{
   
   project.status=status
  await project.save()
+ projectChanged(project.workspaceId)   //an archived project is read only, the cached copy must know
 
  return res.status(200).json({message:"Status Updated Sucessfully"})
   }
@@ -353,16 +363,16 @@ const getAllProjects=async (req,res)=>{
   const {userId}=req.user
   let projects=[]
 
-  const workspace=await Workspace.findById(workspaceid)
+  const workspace=await getWorkspaceDoc(workspaceid)   //cached
   if(!workspace) return res.status(404).json({message:"Workspace not found"})
   const member=workspace.members.find(m=>m.user.toString()===userId.toString())
   if(!member) return res.status(403).json({message:"You are not authorized"})
   
-    if(member.role==='admin'){
-      projects= await Project.find({workspaceId:workspaceid}).select('name description status createdAt')
-    }else{
-      projects= await Project.find({workspaceId:workspaceid,'members.user':userId}).select('name description status createdAt')
-    }
+    // an admin sees all projects, a member only his own: the list is kept for each user
+    projects=await remember(keyOf([`ws:${workspaceid}`],`projects:${userId}`),30,()=>{
+      const filter=member.role==='admin' ? {workspaceId:workspaceid} : {workspaceId:workspaceid,'members.user':userId}
+      return Project.find(filter).select('name description status createdAt').lean()
+    })
     return res.status(200).json(projects)
 }catch(err){
     return sendError(res,err)
@@ -455,6 +465,8 @@ const updateProject = async (req, res) => {
 
     await project.save();
 
+    projectChanged(project.workspaceId)
+
     return res.status(200).json({
       message: "Project updated successfully",
     });
@@ -482,6 +494,7 @@ const taskIds=await Task.find({project:projectId}).distinct('_id')
 await Comment.deleteMany({taskId:{$in:taskIds}})
 await Task.deleteMany({project:projectId})
 await Project.findByIdAndDelete(projectId)
+projectChanged(project.workspaceId)
 return res.status(200).json({message:"Project deleted successfully"})
   }catch(err){
     return sendError(res,err)
