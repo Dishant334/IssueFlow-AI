@@ -1,33 +1,61 @@
 import { Task } from "../models/Tasks.js";
-import User from "../models/User.js";
+import Project from "../models/Projects.js";
+import Comment from "../models/Comments.js";
+import { sendError } from "../utils/handleError.js";
+
+const allowedStatus = ["todo", "in_progress", "done"];
+const allowedPriority = ["low", "medium", "high"];
+
+// a task can only be given to someone who can open the project: a project member or a workspace admin
+const canBeAssigned = (workspace, project, assignedTo) => {
+  const id = assignedTo.toString();
+  const inProject = project.members.some((m) => m.user.toString() === id);
+  const adminInWorkspace = workspace.members.some(
+    (m) => m.user.toString() === id && m.role === "admin"
+  );
+  return inProject || adminInWorkspace;
+};
+
+// positions are halved on every drop between two cards, so after many drops two numbers get too close to
+// each other (or equal). Then the whole column gets fresh positions (1000, 2000, ...) and the frontend reloads.
+const MIN_GAP = 0.001;
+const rebalanceIfNeeded = async (task) => {
+  const column = await Task.find({ project: task.project, status: task.status }).sort({
+    position: 1,
+    _id: 1,
+  });
+  const tooClose = column.some(
+    (t, i) => i > 0 && t.position - column[i - 1].position < MIN_GAP
+  );
+  if (!tooClose) return false;
+
+  await Task.bulkWrite(
+    column.map((t, i) => ({
+      updateOne: { filter: { _id: t._id }, update: { $set: { position: (i + 1) * 1000 } } },
+    }))
+  );
+  return true;
+};
 
 //CREATE TASK 
 const createTask = async (req, res) => {
   try {
     const { userId } = req.user;
-    const user = await User.findById(userId);
 
     const { title, description, assignedTo, status,priority } = req.body;
     const workspace = req.workspace;
     const project = req.project;
 
-    if (!title) {
+    if (!title || typeof title !== "string" || !title.trim()) {
       return res.status(400).json({ message: "Please give a valid title" });
     }
 
-    const allowedStatus = ["todo", "in_progress", "done"];
     const finalStatus = status && allowedStatus.includes(status) ? status : "todo";
 
-    const allowedPriority=['low','medium','high']
     const finalPriority=priority && allowedPriority.includes(priority) ? priority:'medium';
     // Validate assignee (only if provided)
-    if (assignedTo) {
-      const isMember = workspace.members.find(
-        (m) => m.user.toString() === assignedTo.toString()
-      );
-      if (!isMember) {
-        return res.status(400).json({ message: "Assignee not in workspace" });
-      }
+    if (assignedTo && !canBeAssigned(workspace, project, assignedTo)) {
+      return res.status(400).json({ message: "Assignee must be a member of this project" });
     }
 
     const lastTask = await Task.findOne({
@@ -38,12 +66,12 @@ const createTask = async (req, res) => {
     const newTask = await Task.create({
       title,
       description: description || "",
-      createdBy: user._id,
+      createdBy: userId,
       workspace: workspace._id,
       status: finalStatus,
       project: project._id,
       priority:finalPriority,
-      assignedTo,
+      assignedTo: assignedTo || undefined,
       position: lastTask ? lastTask.position + 1000 : 1000,
     });
 
@@ -52,10 +80,7 @@ const createTask = async (req, res) => {
       task: newTask,
     });
   } catch (err) {
-    return res.status(500).json({
-      message: "Failed to create task",
-      error: err.message,
-    });
+    return sendError(res, err, "Failed to create task");
   }
 };
 
@@ -71,7 +96,7 @@ const getAllTasksInProject = async (req, res) => {
 
     return res.status(200).json({ tasks });
   } catch (err) {
-    return res.status(500).json({ message: "Something went wrong" });
+    return sendError(res, err);
   }
 };
 
@@ -96,7 +121,7 @@ const getSingleTaskDetails = async (req, res) => {
 
     return res.status(200).json({ task });
   } catch (err) {
-    return res.status(500).json({ message: "Something went wrong" });
+    return sendError(res, err);
   }
 };
 
@@ -140,20 +165,23 @@ const updateTask = async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    if (assignedTo) {
-      const isMember = workspace.members.find(
-        (m) => m.user.toString() === assignedTo.toString()
-      );
-      if (!isMember) {
-        return res.status(400).json({ message: "Assignee not in workspace" });
-      }
+    if (title !== undefined && (typeof title !== "string" || !title.trim())) {
+      return res.status(400).json({ message: "Please give a valid title" });
+    }
+
+    if (priority !== undefined && !allowedPriority.includes(priority)) {
+      return res.status(400).json({ message: "Invalid priority" });
+    }
+
+    if (assignedTo && !canBeAssigned(workspace, project, assignedTo)) {
+      return res.status(400).json({ message: "Assignee must be a member of this project" });
     }
 
     const updateData = {};
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (priority !== undefined) updateData.priority = priority;
-    if (assignedTo !== undefined) updateData.assignedTo = assignedTo;
+    if (assignedTo !== undefined) updateData.assignedTo = assignedTo || null;
 
     const updatedTask = await Task.findByIdAndUpdate(
       taskId,
@@ -166,7 +194,7 @@ const updateTask = async (req, res) => {
       task: updatedTask,
     });
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    return sendError(res, err);
   }
 };
 
@@ -204,11 +232,12 @@ const deleteTask = async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
+    await Comment.deleteMany({ taskId });   //its comments go with it
     await Task.findByIdAndDelete(taskId);
 
     return res.status(204).send();
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    return sendError(res, err);
   }
 };
 
@@ -222,15 +251,12 @@ const moveTask = async (req, res) => {
     const workspace = req.workspace;
     const { userId } = req.user;
 
-
-
-    const allowedStatus = ["todo", "in_progress", "done"];
     if (status && !allowedStatus.includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
-    if (position === undefined || typeof position !== "number" || isNaN(position)) {
-  return res.status(400).json({ message: "Invalid position" });
-}
+    if (typeof position !== "number" || !Number.isFinite(position)) {
+      return res.status(400).json({ message: "Invalid position" });
+    }
     const task = await Task.findById(taskId);
     if (!task) return res.status(404).json({ message: "Task not found" });
 
@@ -265,16 +291,15 @@ const moveTask = async (req, res) => {
     task.position = position;
 
     await task.save();
+    const rebalanced = await rebalanceIfNeeded(task);
 
     return res.status(200).json({
       message: "Task moved successfully",
       task,
+      rebalanced,
     });
   } catch (err) {
-    return res.status(500).json({
-      message: "Failed to move task",
-      error: err.message,
-    });
+    return sendError(res, err, "Failed to move task");
   }
 };
 
@@ -286,8 +311,11 @@ const moveTaskWorkspace = async (req, res) => {
     const workspace = req.workspace;
 
     // 1. Validate input
-    if (!status || position === undefined) {
-      return res.status(400).json({ message: "Invalid data" });
+    if (!status || !allowedStatus.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+    if (typeof position !== "number" || !Number.isFinite(position)) {
+      return res.status(400).json({ message: "Invalid position" });
     }
 
     // 2. Find task
@@ -300,6 +328,13 @@ const moveTaskWorkspace = async (req, res) => {
     // 3. Ensure task belongs to workspace
     if (task.workspace.toString() !== workspace._id.toString()) {
       return res.status(403).json({ message: "Task not in workspace" });
+    }
+
+    // an archived project is read only
+    const project = await Project.findById(task.project);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+    if (project.status === "archived") {
+      return res.status(409).json({ message: "This project is archived, so it cannot be changed" });
     }
 
     // 4. Permission check
@@ -326,16 +361,15 @@ const moveTaskWorkspace = async (req, res) => {
     task.position = position;
 
     await task.save();
+    const rebalanced = await rebalanceIfNeeded(task);
 
     return res.status(200).json({
       message: "Task moved successfully",
       task,
+      rebalanced,
     });
   } catch (err) {
-    return res.status(500).json({
-      message: "Failed to move task",
-      error: err.message,
-    });
+    return sendError(res, err, "Failed to move task");
   }
 };
 
@@ -345,9 +379,13 @@ const getMyTasks = async (req, res) => {
     const workspace = req.workspace;
     const { userId } = req.user;
 
+    // only tasks of projects that still exist
+    const projectIds = await Project.find({ workspaceId: workspace._id }).distinct("_id");
+
     const tasks = await Task.find({
       workspace: workspace._id,
       assignedTo: userId,
+      project: { $in: projectIds },
     })
       .populate("assignedTo", "name email")
       .populate("createdBy", "name email")
@@ -358,20 +396,8 @@ const getMyTasks = async (req, res) => {
       tasks,
     });
   } catch (err) {
-    return res.status(500).json({
-      message: "Failed to fetch my tasks",
-      error: err.message,
-    });
+    return sendError(res, err, "Failed to fetch my tasks");
   }
 };
 
-export {
-  createTask,
-  deleteTask,
-  updateTask,
-  moveTask,
-  getAllTasksInProject,
-  getSingleTaskDetails,
-  getMyTasks,
-  moveTaskWorkspace
-};
+export { createTask, getAllTasksInProject, getSingleTaskDetails, updateTask, deleteTask, moveTask, moveTaskWorkspace, getMyTasks };

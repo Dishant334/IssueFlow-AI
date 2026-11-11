@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { generateInviteTemplate } from "../template/inviteTemplate.js";
+import { generateInviteTemplate, generateInviteText } from "../template/inviteTemplate.js";
 
 
 const transporter = nodemailer.createTransport({
@@ -8,6 +8,10 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.GOOGLE_APP_PASSWORD,
   },
+  // fail fast (instead of hanging for minutes) if the host blocks the SMTP connection
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 
@@ -25,9 +29,10 @@ export const sendInviteEmail = async ({
     });
 
     const mailOptions = {
-      from: "ISSUEFLOW AI Team" ,
+      from: `"IssueFlow AI Team" <${process.env.EMAIL_USER}>`,
       to,
-      subject: `You're invited to join ${workspaceName}`,
+      subject: `${invitedByName} invited you to ${workspaceName} on IssueFlow`,
+      text: generateInviteText({ workspaceName, inviteLink, invitedByName }),
       html,
     };
 
@@ -35,7 +40,7 @@ export const sendInviteEmail = async ({
 
     return info;
   } catch (error) {
-    console.error("Email sending failed:", error);
+    console.error("Email sending failed:", error.code, error.responseCode, error.message);
     throw new Error("Failed to send invite email");
   }
 };

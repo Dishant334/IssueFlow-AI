@@ -48,18 +48,19 @@ const EditTaskForm = ({ onClose, fetchTasks, taskId }) => {
   useEffect(() => {
     async function fetchData() {
       try {
+        // only people who can open the project can be given a task
         const response = await api.get(
-          `/api/workspace/${workspaceid}/members`,
+          `/api/projects/${projectId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setMembers(response.data.members);
-      } catch (err) {
+        setMembers(response.data.projectMembers);
+      } catch {
         toast.error("Failed to load members");
       }
     }
 
     fetchData();
-  }, [workspaceid]);
+  }, [projectId]);
 
   return (
     <AnimatePresence>

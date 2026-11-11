@@ -45,14 +45,14 @@ const Workspace = ({ workspaces }) => {
       {/* Trigger */}
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full px-3 py-2 rounded-md bg-[#111827] border-[#1F2937] hover:bg-[#1F2937] transition"
+        className="flex items-center justify-between w-full px-3 py-2 rounded-md bg-slate-900 border-slate-800 hover:bg-[#1F2937] transition"
       >
         {active ? (
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-7 h-7 rounded bg-indigo-600 text-white flex items-center justify-center font-medium">
               {active.name[0]}
             </div>
-            <span className="truncate font-medium text-[#E5E7EB]">
+            <span className="truncate font-medium text-slate-200">
               {active.name}
             </span>
           </div>
@@ -61,7 +61,7 @@ const Workspace = ({ workspaces }) => {
         )}
 
         <svg
-          className={`w-4 h-4 text-[#9CA3AF] transition-transform ${
+          className={`w-4 h-4 text-slate-400 transition-transform ${
             open ? 'rotate-180' : ''
           }`}
           fill="none"

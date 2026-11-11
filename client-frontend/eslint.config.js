@@ -23,7 +23,10 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // `motion` is used as <motion.div> in the JSX, which this rule does not see
+      'no-unused-vars': ['error', { varsIgnorePattern: '^([A-Z_]|motion$)' }],
+      // "set loading, then fetch" inside an effect is a normal pattern in this project, so only warn
+      'react-hooks/set-state-in-effect': 'warn',
     },
   },
 ])

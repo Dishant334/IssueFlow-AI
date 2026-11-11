@@ -4,6 +4,8 @@ import {v4 as uuidv4} from 'uuid'
 import crypto from "node:crypto";
 import User from "../models/User.js";
 import { sendInviteEmail } from "../services/emailServices.js";
+import { sendError } from "../utils/handleError.js";
+import { removeUserFromWorkspaceData } from "../services/workspaceCleanup.js";
 
 
 
@@ -14,7 +16,7 @@ import { sendInviteEmail } from "../services/emailServices.js";
     const workspace=req.workspace     /**1. extract workspace id from params */
     const {email} = req.body  /**2.get email from cliend body*/
 
-     if(!email) return res.status(400).json({message:"Enter Email"})
+     if(!email || typeof email!=='string') return res.status(400).json({message:"Enter Email"})
     const normalizeEmail= email.toLowerCase().trim()   /**3.normalize email to lowercase and trim it */
       
       const member = workspace.members.find(
@@ -44,7 +46,12 @@ import { sendInviteEmail } from "../services/emailServices.js";
              status: "pending"
              });
         if (existingInvite) {
-           return res.status(404).json({ message: "Invite already sent" });
+           if (existingInvite.expiresAt < Date.now()) {   //the old invite ran out, it must not block a new one
+             existingInvite.status = "expired"
+             await existingInvite.save()
+           } else {
+             return res.status(400).json({ message: "Invite already sent" });
+           }
             } 
 
      const rawToken=uuidv4()    /**hash token */
@@ -54,7 +61,7 @@ const hashedToken = crypto
   .update(rawToken)
   .digest("hex");
 
-    await  Invitation.create({
+    const newInvite = await  Invitation.create({
         workspaceId:workspace._id,
         email:normalizeEmail,
         role:'member',
@@ -67,7 +74,12 @@ const hashedToken = crypto
     const inviteLink = `${process.env.CLIENT_URL}/invite/${rawToken}`
 
 
+    try{
     await  sendInviteEmail({to:normalizeEmail, workspaceName:workspace.name,inviteLink:inviteLink,invitedByName:adminUser.name})
+    }catch(mailErr){
+      await Invitation.deleteOne({_id:newInvite._id})   //email did not go out, so remove the invite and let the admin try again
+      return res.status(502).json({message:"Invite email could not be sent. Please try again"})
+    }
      res.status(200).json({message:"Invite Send Successfully"})
 
     }catch(err){
@@ -77,7 +89,7 @@ const hashedToken = crypto
       });
    }
 
-        return res.status(500).json({message:"Something went wrong"})
+        return sendError(res,err)
     }
    }
    //:POST /api/invite/accept/:token    raw token
@@ -106,7 +118,7 @@ const hashedToken = crypto
         return res.status(404).json({ message: "User not found" });
            }
 
-           if (user.email !== invitation.email) {
+           if (user.email.toLowerCase() !== invitation.email) {
            return res.status(403).json({ message: `This invite is sent to ${invitation.email} Please Login with correct account` });
               }
 
@@ -123,22 +135,25 @@ const hashedToken = crypto
        return res.status(403).json({ message: "You are already a member of this workspace" });
       }
       
-      workspace.members.push({
-        user:user._id,
-        role:invitation.role,
-        joinedAt:new Date()
-      })
-     await  workspace.save()
+      // take the invite first, so two requests with the same link cannot both use it
+      const claimed = await Invitation.findOneAndUpdate({ _id: invitation._id, status: "pending" }, { status: "accepted" })
+      if (!claimed) return res.status(400).json({message:"Invite already processed"})
 
-     invitation.status = "accepted"
-     await invitation.save()
+      const added = await Workspace.updateOne(
+        { _id: workspace._id, "members.user": { $ne: user._id } },
+        { $push: { members: { user: user._id, role: invitation.role === "admin" ? "admin" : "member", joinedAt: new Date() } } }
+      )
+      if (added.modifiedCount === 0) {
+        await Invitation.updateOne({ _id: invitation._id }, { status: "pending" })   //nothing was added, give the invite back
+        return res.status(403).json({ message: "You are already a member of this workspace" })
+      }
 
      
  
      return res.status(200).json({message:"Joined Workspace Successfully"})
     }catch(err){
-     return res.status(500).json({message:"Something went wrong"})
-    }
+    return sendError(res,err)
+  }
    }    
  
 
@@ -193,7 +208,7 @@ const currentMember = fullWorkspace.members.find(
 });
   }
   catch(err){
-    return res.status(500).json({message:"Something went wrong"})
+    return sendError(res,err)
   }
  }
   // GET /api/workspace/:workspaceid/invites
@@ -202,11 +217,14 @@ const currentMember = fullWorkspace.members.find(
   
   const {workspaceid}=req.params
   
+  await Invitation.updateMany({workspaceId:workspaceid,status:"pending",expiresAt:{$lt:new Date()}},{status:"expired"})
   const invites=await Invitation.find({workspaceId : workspaceid,status:"pending"}).populate('invitedBy','name')
   
 
   return res.status(200).json({invites})
-}catch(err){res.status(500).json({message:"Something went wrong"})}
+}catch(err){
+    return sendError(res,err)
+  }
  } 
 
 
@@ -246,16 +264,15 @@ const currentMember = fullWorkspace.members.find(
       );
 
       await workspace.save();
+      await removeUserFromWorkspaceData(workspace._id, memberId);   //out of the projects, tasks unassigned
 
       return res.status(200).json({
          message: "Member removed successfully"
       });
 
-   } catch (err) {
-      return res.status(500).json({
-         message: "Something went wrong"
-      });
-   }
+   } catch(err){
+    return sendError(res,err)
+  }
 };
 
 
@@ -278,8 +295,8 @@ const promoteMember=async(req,res)=>{
     await workspace.save()
      return res.status(200).json({message:"Promote Successful"})
     }catch(err){
-      res.status(500).json({message:"Something Went Wrong"})
-    }
+    return sendError(res,err)
+  }
 }
 
 
@@ -316,11 +333,9 @@ const cancelInvite = async (req, res) => {
          message: "Invite cancelled successfully"
       });
 
-   } catch (err) {
-      return res.status(500).json({
-         message: "Something went wrong"
-      });
-   }
+   } catch(err){
+    return sendError(res,err)
+  }
 };
 
 //: GET /api/invite/:token
@@ -360,8 +375,8 @@ const gettoken =async(req,res)=>{
       expiresAt:invitation.expiresAt
    })
 }catch(err){
-   return res.status(500).json({message : "Something Went Wrong"})
-}
+    return sendError(res,err)
+  }
 }
 
 

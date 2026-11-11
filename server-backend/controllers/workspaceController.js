@@ -1,4 +1,5 @@
 import Workspace from "../models/Workspace.js";
+import { sendError } from "../utils/handleError.js";
 
 
 
@@ -8,7 +9,7 @@ const addWorkspace=async(req,res)=>{
    const {name}=req.body;
    const currUser=req.user.userId; //from auth middleware
 
-   if(!name) return res.status(400).json({message:"Enter the name"})
+   if(!name || typeof name!=='string' || !name.trim()) return res.status(400).json({message:"Enter the name"})
    
 
 
@@ -20,8 +21,8 @@ const addWorkspace=async(req,res)=>{
 
     res.status(200).json({message:"Workspace created successfully",newworkspace})
 }catch(err){
-  res.status(500).json({message:"Something went wrong"})
-}}
+    return sendError(res,err)
+  }}
 
 
 // GET /api/workspaces
@@ -49,8 +50,8 @@ const getWorkspaces = async (req, res) => {
     });
 
     res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ message: "Internal error occurred" });
+  } catch(err){
+    return sendError(res,err)
   }
 };
 
@@ -64,20 +65,19 @@ const getSingleWorkspace= async(req,res)=>{
     const reqworkspace=await Workspace.findById(workspaceid)
     
       if(!reqworkspace) return res.status(404).json({message:"404 Not Found"})
-    const reqdetails=()=>{
-        const myMembership = reqworkspace.members.find(    //from members find role 
-        (m) => m.user.toString() === userId
-      );
-      if(!myMembership) return res.status(403).json({message:"Not a member"})
-      return{  
-          id: reqworkspace._id,
-        name: reqworkspace.name,
-        role: myMembership.role
-      }
-    }
-     res.status(200).json(reqdetails()) 
+
+    const myMembership = reqworkspace.members.find(    //from members find role 
+      (m) => m.user.toString() === userId
+    );
+    if(!myMembership) return res.status(403).json({message:"Not a member"})
+
+    return res.status(200).json({
+      id: reqworkspace._id,
+      name: reqworkspace.name,
+      role: myMembership.role
+    })
   }catch(err){
-   res.status(500).json({ message: "Internal error occurred" });
+   return sendError(res,err,"Internal error occurred")
   }
 }
 

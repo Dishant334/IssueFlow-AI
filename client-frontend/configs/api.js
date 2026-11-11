@@ -4,6 +4,14 @@ const api= axios.create({
     baseURL:import.meta.env.VITE_BASE_URL
 })
 
+// every request carries the newest token. Components read the token once when they open, so after a refresh
+// they would still send the old one and each request would need a retry
+api.interceptors.request.use((config)=>{
+    const token=localStorage.getItem("token")
+    if(token) config.headers.Authorization=`Bearer ${token}`
+    return config
+})
+
 // if the short lived token expired, get a new one with the refresh token and retry the request once
 api.interceptors.response.use(
     (response)=>response,

@@ -1,29 +1,32 @@
+import { lazy, Suspense } from 'react'
 import Home from './page/Home.jsx'
+import Loading from './components/Loading.jsx'
 import { Routes,Route} from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 
 import './App.css'
-import Login from './page/Login.jsx'
-import Register from './page/Register.jsx'
-import Dashboar from './page/Dashboar.jsx'
-import DashboardHome from './components/Dashboard/DashboardHome.jsx'
-import DashboardAllProject from './components/Dashboard/DashboardAllProject.jsx'
-import DashboardMembers from './components/Dashboard/DashboardMembers.jsx'
-import DashboardMyTasks from './components/Dashboard/DashboardMyTasks.jsx'
+const Login = lazy(() => import('./page/Login.jsx'))
+const Register = lazy(() => import('./page/Register.jsx'))
+const Dashboar = lazy(() => import('./page/Dashboar.jsx'))
+const DashboardHome = lazy(() => import('./components/Dashboard/DashboardHome.jsx'))
+const DashboardAllProject = lazy(() => import('./components/Dashboard/DashboardAllProject.jsx'))
+const DashboardMembers = lazy(() => import('./components/Dashboard/DashboardMembers.jsx'))
+const DashboardMyTasks = lazy(() => import('./components/Dashboard/DashboardMyTasks.jsx'))
 import ProtectedRoute from './protectFrontend/ProtectedRoute.jsx'
-import CreateWorkspace from './components/CreateWorkspace/CreateWorkspace.jsx'
-import DashboardSettings from './components/Dashboard/DashboardSettings.jsx'
-import InvitePage from './page/InvitePage.jsx'
-import SingleProject from './components/Dashboard/SingleProject.jsx'
-import Overview from './components/SingleProject.jsx/Overview.jsx'
-import Setting from './components/SingleProject.jsx/Setting.jsx'
-import Members from './components/SingleProject.jsx/Members.jsx'
-import Tasks from './components/SingleProject.jsx/Tasks.jsx'
+const CreateWorkspace = lazy(() => import('./components/CreateWorkspace/CreateWorkspace.jsx'))
+const DashboardSettings = lazy(() => import('./components/Dashboard/DashboardSettings.jsx'))
+const InvitePage = lazy(() => import('./page/InvitePage.jsx'))
+const SingleProject = lazy(() => import('./components/Dashboard/SingleProject.jsx'))
+const Overview = lazy(() => import('./components/SingleProject.jsx/Overview.jsx'))
+const Setting = lazy(() => import('./components/SingleProject.jsx/Setting.jsx'))
+const Members = lazy(() => import('./components/SingleProject.jsx/Members.jsx'))
+const Tasks = lazy(() => import('./components/SingleProject.jsx/Tasks.jsx'))
 import { Navigate } from 'react-router-dom'
 function App() {
   return (
     <>
            <Toaster position="top-center" reverseOrder={false} />
+    <Suspense fallback={<Loading/>}>
     <Routes>
       <Route path='/' element={<Home/>}/>
       <Route path='/login' element={<Login/>}/>
@@ -52,6 +55,7 @@ function App() {
      </Route>
      <Route path='/invite/:token' element={<InvitePage/>}/>
     </Routes>
+    </Suspense>
     </>
   )
 }
