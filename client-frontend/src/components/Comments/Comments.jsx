@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import api from '../../../configs/api'
 import { useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -69,6 +69,12 @@ const [totalPages, setTotalPages] = useState(1)
     }
   }
 
+  // the socket effect below runs only once per task, so it needs a way to call the newest fetchData (with the current page)
+  const fetchRef = useRef(fetchData)
+  useEffect(() => {
+    fetchRef.current = fetchData   // after every render, so it always has the current page
+  })
+
   useEffect(() => {
     if (workspaceid && projectId && taskId) {
       fetchData()
@@ -79,8 +85,14 @@ const [totalPages, setTotalPages] = useState(1)
   useEffect(() => {
   if (!taskId) return;
 
-  // the server forgets the rooms when the connection drops, so join again after every (re)connect
-  const join = () => socket.emit("joinTask", taskId);
+  // the server forgets the rooms when the connection drops, so join again after every (re)connect.
+  // Comments sent while we were disconnected are never replayed, so after a RECONNECT the list is loaded again.
+  let firstJoin = true;
+  const join = () => {
+    socket.emit("joinTask", taskId);
+    if (!firstJoin) fetchRef.current();
+    firstJoin = false;
+  };
   socket.on("connect", join);
   if (socket.connected) join();
   else socket.connect();

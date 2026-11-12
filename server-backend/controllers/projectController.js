@@ -4,6 +4,7 @@ import { Task } from "../models/Tasks.js";
 import Comment from "../models/Comments.js";
 import { sendError } from "../utils/handleError.js";
 import { keyOf, remember } from "../utils/cache.js";
+import { recheckUserRooms } from "../services/socketServices.js";
 import { getWorkspaceDoc, projectChanged } from "../services/dataCache.js";
 
 // GET /projects/:projectId
@@ -311,6 +312,7 @@ const deleteMember=async(req,res)=>{
   await project.save()
   await Task.updateMany({project:project._id,assignedTo:memberId},{$unset:{assignedTo:1}})   //he cannot open the project anymore
   projectChanged(project.workspaceId)   //so the cached copies must not let him in
+  await recheckUserRooms(memberId)   //and his open sockets must stop getting live comments of this project
   return res.status(200).json({message:"Member deleted successfully"})
 }catch(err){
     return sendError(res,err)

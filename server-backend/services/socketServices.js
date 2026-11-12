@@ -9,6 +9,9 @@ import { socketIp } from "../utils/clientIp.js";
 
 let io;  //initializing a instance of Socket.io
 
+// the room of a task. The prefix keeps the names apart from other kinds of rooms ("user:...", and later "project:...")
+const taskRoom = (taskId) => `task:${taskId}`
+
 // same rule as the task routes: a workspace member who is in the project (or a workspace admin)
 const canOpenTask = async (userId, taskId) => {
   const task = await Task.findById(taskId);
@@ -57,20 +60,23 @@ io.use((socket,next)=>{
 
 io.on('connection',(socket)=>{  //connection event runs when a new user connects
 
+  // a room for this user alone: lets the server find all his sockets (used when he loses access to something)
+  socket.join(`user:${socket.data.userId}`)
+
   //join task room, only if the user is allowed to open that task
   socket.on('joinTask',async (taskId)=>{   // task act as a room
     try{
       // every join does database lookups, so one socket cannot join without limit
       if(!(await limiters.socketJoinPerSocket.consume(socket.id)).allowed) return
       if(!mongoose.isValidObjectId(taskId)) return
-      if(await canOpenTask(socket.data.userId,taskId)) socket.join(taskId.toString())
+      if(await canOpenTask(socket.data.userId,taskId)) socket.join(taskRoom(taskId))
     }catch(err){
       console.error("joinTask failed:",err.message)
     }
   })
 
   socket.on('leaveTask',(taskId)=>{
-    if(typeof taskId==='string') socket.leave(taskId)
+    if(typeof taskId==='string') socket.leave(taskRoom(taskId))
   })
 })
 return io
@@ -79,4 +85,26 @@ return io
 export const  getio =()=>{
     if(!io) throw new Error('Socket not initialized')
         return io
+}
+
+// send an event to everybody who has this task open
+export const emitToTask = (taskId, event, payload) => {
+  getio().to(taskRoom(taskId)).emit(event, payload)
+}
+
+// Access is checked when a socket joins a room, so when somebody loses access (removed from a workspace or a project)
+// the rooms he already joined must be checked again: he leaves the ones he may not see anymore, and keeps the others.
+export const recheckUserRooms = async (userId) => {
+  if (!io) return
+  try {
+    const sockets = await io.in(`user:${userId}`).fetchSockets()
+    for (const socket of sockets) {
+      for (const room of socket.rooms) {
+        if (!room.startsWith("task:")) continue
+        if (!(await canOpenTask(userId, room.slice(5)))) socket.leave(room)
+      }
+    }
+  } catch (err) {
+    console.error("recheckUserRooms failed:", err.message)
+  }
 }

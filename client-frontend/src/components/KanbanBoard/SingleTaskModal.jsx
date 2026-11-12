@@ -35,11 +35,12 @@ const SingleTaskModal = ({onClose,taskId}) => {
     }
   
     const addComment=async()=>{
+        if(!text.trim()) return   //nothing to send
         try{
           await api.post(`/api/workspace/${workspaceid}/project/${projectId}/task/${taskId}/comments`,{text:text},{headers:{Authorization:`Bearer ${token}`}})
           setText('')
         }catch(err){
-            toast.err(err?.response?.data?.message)
+            toast.error(err?.response?.data?.message || 'Comment could not be sent')
         }
     }
     
@@ -156,6 +157,7 @@ const SingleTaskModal = ({onClose,taskId}) => {
               placeholder="Write a comment..."
               value={text}
               onChange={addText}
+              onKeyDown={(e)=>{ if(e.key==='Enter') addComment() }}   //Enter sends, like the Send button
               className="w-full bg-transparent text-white text-sm outline-none placeholder:text-slate-400"
             />
             <button
