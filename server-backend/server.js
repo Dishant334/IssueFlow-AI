@@ -86,11 +86,13 @@ const server = app.listen(port,()=>{
 })
 
 //initialize socket
-initSocket(server)
+const io = initSocket(server)
 
-// on a restart or a deploy: stop taking new requests, finish the running ones, close the database
+// on a restart or a deploy: stop taking new requests, close the sockets, close the database.
+// io.close() also closes the http server. (server.close() alone waits for every open WebSocket, so it never finished.)
 const shutdown=()=>{
-    server.close(async ()=>{
+    setTimeout(()=>process.exit(1),10000).unref()   // if something hangs, do not wait forever
+    io.close(async ()=>{
         await mongoose.connection.close()
         process.exit(0)
     })

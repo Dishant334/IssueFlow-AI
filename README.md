@@ -136,7 +136,7 @@ IssueFlow-AI/
     ├── models/                     # Mongoose schemas
     ├── utils/                      # cache, limiter algorithms, error helper
     ├── template/                   # email templates
-    └── scripts/                    # benchmark, orphan cleanup
+    └── scripts/                    # latency benchmark
 ```
 
 ---
@@ -390,7 +390,6 @@ Run these from `server-backend`.
 | `npm run dev` | start with auto-restart (nodemon) |
 | `npm start` | start for production |
 | `node scripts/benchmark.js <api url> <email> <password> [rounds] [pause ms]` | read-only latency benchmark, see [Performance](#performance) |
-| `node scripts/cleanOrphans.js` | counts tasks, comments and invitations left behind by deleted parents. It only deletes with `--apply`. |
 
 Frontend: `npm run dev`, `npm run build`, `npm run preview`, `npm run lint`.
 

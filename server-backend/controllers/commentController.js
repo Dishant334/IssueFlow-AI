@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import Comment from "../models/Comments.js";
-import { getio } from "../services/socketServices.js";
+import { emitToTask } from "../services/socketServices.js";
 import { sendError } from "../utils/handleError.js";
 
 // the workspace, project and task of the url are already checked by the middleware (req.task)
@@ -23,8 +23,7 @@ const createComment =async(req,res)=>{
      const populatedComment = await Comment.findById(comment._id)
      .populate("user", "name")
 
-     const io = getio();
-     io.to(taskId.toString()).emit("newComment", populatedComment);
+     emitToTask(taskId, "newComment", populatedComment);
 
     return res.status(200).json({message:"Comment added successfully",comment})
 }catch(err){
@@ -90,8 +89,7 @@ const deleteComment=async (req,res)=>{
     await Comment.findByIdAndDelete(comment._id)
 
     //real time change
-    const io = getio();
-   io.to(req.task._id.toString()).emit("deleteComment", comment._id.toString());
+   emitToTask(req.task._id, "deleteComment", comment._id.toString());
 
     return res.status(200).json({message:"Comment deleted successfully"})
 }catch(err){
@@ -112,8 +110,7 @@ const editComment=async(req,res)=>{
     await comment.save()
 
     //real time change
-    const io = getio();
-    io.to(req.task._id.toString()).emit("editComment", {
+    emitToTask(req.task._id, "editComment", {
     commentId:comment._id.toString(),
     text: editedComment
     });
