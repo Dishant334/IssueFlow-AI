@@ -1,8 +1,9 @@
 import api from '../../configs/api'
 import React, { useState } from 'react'
-import {  useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {EyeClosed,Eye} from 'lucide-react';
+import { inputClass, labelClass, buttonClass } from '../components/AuthLayout'
 
 
 
@@ -55,53 +56,54 @@ const Register = () => {
        navigate(loginPath)
     }
   return (
-    <div className='relative min-h-screen flex items-center justify-center bg-[#e6ecf3] overflow-hidden'>
+    <>
+      <h1 className="font-display text-3xl font-semibold text-[#FAF7F2]">Create your account</h1>
+      <p className="mt-2 text-sm text-slate-400">It is free, and takes less than a minute.</p>
 
-       <div className="absolute w-72 h-72 bg-purple-400 opacity-30 rounded-full blur-md top-10 left-10"></div>
-         <div className="absolute w-96 h-96 bg-blue-300 opacity-30 rounded-full blur-md bottom-10 right-10"></div>
-          <div className="absolute w-64 h-64 bg-indigo-400 opacity-30 rounded-full blur-md top-1/2 left-1/4"></div>
-          <div className="absolute w-40 h-40 bg-gray-400 opacity-30 rounded-full blur-md top-5 right-1/4 "></div>
-
-        <div className='relative z-10 backdrop-blur-xl bg-white/40 border border-white/50 rounded-2xl p-4 sm:p-8 shadow-xl min-h-84 w-full max-w-sm mx-4'>
-             <form onSubmit={handleSubmit} action="" className='flex flex-col gap-10  p-4'>
-                <input type="text" className='w-full px-4 py-2 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition' placeholder='Username' name="name" value={register.name} onChange={handleInput}/>
-                <input type="email"  className='w-full px-4 py-2 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition' placeholder='Email' name="email" value={register.email} onChange={handleInput}/>
-
-
-                 {/* Password */}
-                          <div className="relative w-full">
-                           <input
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            value={register.password}
-                            onChange={handleInput}
-                           placeholder="Password"
-                           className="w-full px-4 py-2  pr-10 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                           />
-               
-                          {/* Eye Icon */}
-                           <button
-                           type="button"
-                            onClick={() => setShowPassword(prev => !prev)}
-                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900"
-                           >
-                          {showPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
-                          </button>
-                          {passwordError && (
-                           <p className="text-red-500 text-sm ml-3 ">{passwordError}</p>
-                             )}
-                            </div>
-                           
-                            
-               
-                  <div className='flex flex-wrap items-center justify-between gap-4'>
-                  <button type='submit' className='bg-blue-700 w-28 h-8 rounded-full cursor-pointer'>Sign Up</button>
-                  <p>Already a member? <button type="button" onClick={toLogin} className='text-yellow-400 cursor-pointer'>Login</button></p>
-                  </div>
-             </form>
+      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+        <div>
+          <label htmlFor="name" className={labelClass}>Username</label>
+          <input id="name" type="text" name="name" autoComplete="name" value={register.name} onChange={handleInput} placeholder="Your name" className={inputClass} />
         </div>
-      
-    </div>
+
+        <div>
+          <label htmlFor="email" className={labelClass}>Email</label>
+          <input id="email" type="email" name="email" autoComplete="email" value={register.email} onChange={handleInput} placeholder="you@example.com" className={inputClass} />
+        </div>
+
+        <div>
+          <label htmlFor="password" className={labelClass}>Password</label>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              autoComplete="new-password"
+              value={register.password}
+              onChange={handleInput}
+              placeholder="At least 6 characters"
+              className={`${inputClass} pr-11`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-200"
+            >
+              {showPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+          {passwordError && <p className="auth-shake mt-1.5 text-sm text-[#DE8C7F]">{passwordError}</p>}
+        </div>
+
+        <button type="submit" className={`${buttonClass} mt-2`}>Create account</button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-slate-400">
+        Already a member?{' '}
+        <button type="button" onClick={toLogin} className="cursor-pointer font-medium text-[#E0825B] hover:underline">Log in</button>
+      </p>
+    </>
   )
 }
 

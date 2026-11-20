@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import {toast} from 'react-hot-toast'
 import { getWorkspaces } from '../apiHelper/workspace'
 import {EyeClosed,Eye} from 'lucide-react';
+import { inputClass, labelClass, buttonClass } from '../components/AuthLayout'
 
 const Login = () => {
   
@@ -70,63 +71,62 @@ const redirect=params.get('redirect')
        navigate(redirect ? `/register?redirect=${redirect}` : '/register')
     }
   return (
-<div className='relative min-h-screen flex items-center justify-center bg-[#e6ecf3] overflow-hidden'>
-          
-          <div className="absolute w-72 h-72 bg-purple-400 opacity-30 rounded-full blur-md top-10 left-10"></div>
-         <div className="absolute w-96 h-96 bg-blue-300 opacity-30 rounded-full blur-md bottom-10 right-10"></div>
-          <div className="absolute w-64 h-64 bg-indigo-400 opacity-30 rounded-full blur-md top-1/2 left-1/4"></div>
-           <div className="absolute w-40 h-40 bg-gray-400 opacity-30 rounded-full blur-md top-5 right-1/4 "></div>
+    <>
+      <h1 className="font-display text-3xl font-semibold text-[#FAF7F2]">Log in</h1>
+      <p className="mt-2 text-sm text-slate-400">Enter your details to open your workspace.</p>
 
-          {/*glass card*/}
-        <div className='relative z-10 backdrop-blur-xl bg-white/40 border border-white/50 rounded-2xl p-4 sm:p-8 shadow-xl min-h-64 w-full max-w-sm mx-4'>
-             <form onSubmit={handleSubmit} action="" className='flex flex-col gap-10  p-4'>
-               <div className="flex flex-col gap-6">
-
-  {/* Email */}
+      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+        <div>
+          <label htmlFor="email" className={labelClass}>Email</label>
           <input
-           type="email"
-           name="email"
-           value={login.email}
-           onChange={handleInput}
-           placeholder="Email"
-           className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-           />
-
-           {/* Password */}
-           <div className="relative w-full">
-            <input
-             type={showPassword ? "text" : "password"}
-             name="password"
-             value={login.password}
-             onChange={handleInput}
-            placeholder="Password"
-            className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 bg-white/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            />
-
-           {/* Eye Icon */}
-            <button
-            type="button"
-             onClick={() => setShowPassword(prev => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900"
-            >
-           {showPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
-           </button>
-             </div>
-
-           {/* Forgot password */}
-           <div className='flex justify-end -mt-3'>
-             <button type='button' onClick={()=>navigate('/forgot-password')} className='text-sm text-blue-800 hover:underline cursor-pointer'>Forgot password?</button>
-           </div>
- 
-            </div>
-                  <div className='flex flex-wrap items-center justify-between gap-4'>
-                  <button type='submit' className='bg-blue-700 w-28 h-8 rounded-full cursor-pointer'>Login</button>
-                  <p>Not a member? <button type='button' onClick={toRegister} className='text-yellow-400 cursor-pointer'>Sign Up</button></p>
-                  </div>
-             </form>
+            id="email"
+            type="email"
+            name="email"
+            autoComplete="email"
+            value={login.email}
+            onChange={handleInput}
+            placeholder="you@example.com"
+            className={inputClass}
+          />
         </div>
-      
-    </div>
+
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label htmlFor="password" className="text-sm text-slate-400">Password</label>
+            <button type="button" onClick={() => navigate('/forgot-password')} className="cursor-pointer text-sm text-[#E0825B] hover:underline">
+              Forgot password?
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              autoComplete="current-password"
+              value={login.password}
+              onChange={handleInput}
+              placeholder="Your password"
+              className={`${inputClass} pr-11`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-200"
+            >
+              {showPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" className={`${buttonClass} mt-2`}>Log in</button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-slate-400">
+        New to IssueFlow?{' '}
+        <button type="button" onClick={toRegister} className="cursor-pointer font-medium text-[#E0825B] hover:underline">Create an account</button>
+      </p>
+    </>
   )
 }
 

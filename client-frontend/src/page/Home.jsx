@@ -14,7 +14,6 @@ import WorkFlow from '../components/WorkFlow'
 
 const Home = () => {
       const featuresRef = useRef(null)
-      const contactRef = useRef(null)
       const navigate=useNavigate()
       //if the user has a refresh token he is still logged in, so skip the home page
       const [checking,setChecking]=useState(!!localStorage.getItem('refreshToken'))
@@ -49,20 +48,21 @@ const Home = () => {
 
   return (
     <div>
-      <Hero
-       scrollToFeatures={() => featuresRef.current?.scrollIntoView({ behavior: "smooth" })}
-        scrollToContact={() => contactRef.current?.scrollIntoView({ behavior: "smooth" })}/>
+      {/* the page sits above the footer (z-10), so the footer is uncovered as the CTA scrolls away */}
+      <main className="relative z-10">
+        <Hero
+         scrollToFeatures={() => featuresRef.current?.scrollIntoView({ behavior: "smooth" })}
+          scrollToContact={() => document.getElementById('contact')?.scrollIntoView({ behavior: "smooth" })}/>
 
-       <div ref={featuresRef}> 
-      <Features/>
-      </div>
-      <AiFeatures/>
-      <DemoVideo/>
-      <WorkFlow/>
-      <CTA/>
-      <div ref={contactRef}>
+        <div ref={featuresRef}>
+          <Features/>
+        </div>
+        <AiFeatures/>
+        <DemoVideo/>
+        <WorkFlow/>
+        <CTA/>
+      </main>
       <Footer/>
-      </div>
     </div>
   )
 }

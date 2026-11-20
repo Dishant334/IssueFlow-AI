@@ -5,6 +5,7 @@ import { Routes,Route} from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 
 import './App.css'
+const AuthLayout = lazy(() => import('./components/AuthLayout.jsx'))
 const Login = lazy(() => import('./page/Login.jsx'))
 const Register = lazy(() => import('./page/Register.jsx'))
 const ForgotPassword = lazy(() => import('./page/ForgotPassword.jsx'))
@@ -31,8 +32,11 @@ function App() {
     <Suspense fallback={<Loading/>}>
     <Routes>
       <Route path='/' element={<Home/>}/>
-      <Route path='/login' element={<Login/>}/>
-     <Route path='/register' element={<Register/>}/>
+      {/* login and register share one card, so the panel can slide between them */}
+      <Route element={<AuthLayout/>}>
+        <Route path='/login' element={<Login/>}/>
+        <Route path='/register' element={<Register/>}/>
+      </Route>
      <Route path='/forgot-password' element={<ForgotPassword/>}/>
      <Route path='/reset-password/:token' element={<ResetPassword/>}/>
      {/*Protected Route*/}

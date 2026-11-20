@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import Logo from './Logo'
+import HeroBoard from './HeroBoard'
+
+const navLink = "relative text-sm text-slate-300 hover:text-white transition after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-[#E0825B] after:transition-all after:duration-300 hover:after:w-full"
 
 const Hero = ({scrollToFeatures,scrollToContact}) => {
   const [mobileOpen, setMobileOpen] = React.useState(false)
@@ -20,23 +24,17 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
 }, [scrolled]);
 
   return (
-    <section className='relative flex flex-col items-center overflow-hidden bg-linear-to-b from-[#E0E7FF] via-[#F5F3FF] to-[#FAF5FF] px-4 py-4 pt-28'>
+    // same warm charcoal + terracotta colours as the dashboard (see .theme-ember in index.css)
+    <section className='relative flex flex-col items-center overflow-hidden bg-[#161412] px-4 py-4 pt-28 pb-16'>
 
-      {/*  Background Glow (back layer) */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_20%,rgba(124,58,237,0.15),transparent_60%)]"></div>
+      {/* Background: terracotta glow at the top, dotted grid fading out */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(217,99,60,0.28),transparent_60%)]"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.07)_1px,transparent_1px)] bg-size-[32px_32px] mask-[radial-gradient(ellipse_at_center,black_30%,transparent_75%)]"></div>
 
-      {/*  Floating Blobs (middle layer) */}
-      <div className="absolute inset-0 z-1 overflow-hidden">
-
-        {/* Left Blob */}
-        <div className="absolute w-96 h-96 bg-violet-500/50 rounded-full blur-2xl top-20 left-20 animate-blob"></div>
-
-        {/* Right Blob */}
-        <div className="absolute w-96 h-96 bg-indigo-500/50 rounded-full blur-2xl bottom-20 right-20 animate-blob animation-delay-2000"></div>
-
-        {/* Center Glow */}
-        <div className="absolute w-125 h-125 bg-purple-500/20 rounded-full blur-3xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-
+      {/* Floating glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-96 h-96 bg-[#C4552F]/25 rounded-full blur-3xl top-20 -left-10 animate-floatSlow"></div>
+        <div className="absolute w-96 h-96 bg-[#A37624]/20 rounded-full blur-3xl bottom-0 -right-10 animate-floatSlow2"></div>
       </div>
 
 <motion.nav
@@ -52,47 +50,40 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
     stiffness: 70,
     damping: 18
   }}
-  className={`fixed z-50 flex items-center justify-between border backdrop-blur-xl
+  className={`fixed z-50 flex items-center justify-between backdrop-blur-xl
   ${
     scrolled
-      ? "bg-white/10 border-white/20 px-6 py-3"
-      : "bg-transparent border-white/40 px-4 md:px-8 py-4"
+      ? "bg-[#1F1C19]/80 border border-white/10 shadow-lg shadow-black/30 px-6 py-2.5"
+      : "bg-transparent border-b border-white/10 px-4 md:px-10 py-4"
   }`}
 >
   {/* Logo */}
- <motion.div
-  animate={{
-    scale: scrolled ? 0.9 : 1
-  }}
-  transition={{ duration: 0.4 }}
->
-  <Link to="/">
-    <img src="logo.png" className="w-12" />
+  {/* already on the home page, so the link does nothing: scroll to the top instead */}
+  <Link
+    to="/"
+    onClick={(e) => {
+      e.preventDefault()
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }}
+    aria-label="IssueFlow, back to top"
+  >
+    <Logo size={scrolled ? 34 : 40} />
   </Link>
-</motion.div>
 
-  {/* Divider */}
-  <div
-    className={`w-px bg-gray-200 hidden md:flex transition-all duration-500 ${
-      scrolled ? "h-6" : "h-8"
-    }`}
-  />
-
-  {/* Nav Links */}
+  {/* Nav Links (centered) */}
   <div
     className={`max-md:absolute max-md:top-0 max-md:left-0 max-md:h-screen
-    max-md:bg-white/90 max-md:backdrop-blur-xl
+    max-md:bg-[#161412]/95 max-md:backdrop-blur-xl
     max-md:flex-col max-md:justify-center
     max-md:overflow-hidden max-md:transition-[width]
-    max-md:duration-300 flex items-center gap-8 md:gap-10 flex-1
+    max-md:duration-300 flex items-center justify-center gap-8 md:gap-10 flex-1
     ${mobileOpen ? "max-md:w-full" : "max-md:w-0"}`}
   >
 
-    
   {/* Close Button */}
   <button
     onClick={() => setMobileOpen(false)}
-    className="absolute top-6 right-6 md:hidden text-3xl text-gray-700"
+    className="absolute top-6 right-6 md:hidden text-3xl text-slate-300"
   >
     ✕
   </button>
@@ -101,15 +92,25 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
         setMobileOpen(false);
         scrollToFeatures();
       }}
-      className="text-gray-700 hover:text-violet-600 text-sm transition"
+      className={navLink}
     >
       Features
+    </button>
+
+    <button
+      onClick={() => {
+        setMobileOpen(false);
+        scrollToContact();
+      }}
+      className={navLink}
+    >
+      Contact Us
     </button>
 
     <Link
       to="/login"
       onClick={() => setMobileOpen(false)}
-      className="text-gray-700 hover:text-violet-600 text-sm transition"
+      className={`${navLink} md:hidden`}
     >
       Login
     </Link>
@@ -117,29 +118,26 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
     <Link
       to="/register"
       onClick={() => setMobileOpen(false)}
-      className="text-gray-700 hover:text-violet-600 text-sm transition"
+      className={`${navLink} md:hidden`}
     >
       Sign Up
     </Link>
-
-    <button
-      onClick={() => {
-        setMobileOpen(false);
-        scrollToContact();
-      }}
-      className="text-gray-700 hover:text-violet-600 text-sm transition"
-    >
-      Contact Us
-    </button>
   </div>
 
-  {/* CTA */}
-  <div className="flex items-center gap-2">
+  {/* Auth buttons */}
+  <div className="flex items-center gap-3">
+    <Link
+      to="/login"
+      className="hidden md:inline-block text-sm text-slate-300 hover:text-white px-3 py-2 transition"
+    >
+      Login
+    </Link>
+
     <Link
       to="/register"
-      className={`hidden md:inline-block bg-violet-600 hover:bg-violet-700
-      text-white rounded-full text-sm transition-all duration-300
-      hover:scale-105 active:scale-95
+      className={`hidden md:inline-block bg-linear-to-r from-[#E0825B] to-[#C4552F]
+      text-white rounded-full text-sm font-medium shadow-lg shadow-[#C4552F]/30 transition-all duration-300
+      hover:scale-105 hover:shadow-[#C4552F]/50 active:scale-95
       ${scrolled ? "px-5 py-2" : "px-6 py-2.5"}`}
     >
       Get Started
@@ -147,25 +145,30 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
 
     <button
       onClick={() => setMobileOpen(true)}
-      className="md:hidden text-gray-700 p-2"
+      className="md:hidden text-slate-200 text-xl p-2"
     >
       ☰
     </button>
   </div>
 </motion.nav>
 
+      <div className="relative z-2 flex w-full max-w-6xl flex-col items-center gap-6 mt-20 lg:flex-row lg:gap-4">
+
+      {/* Left side: text content */}
+      <div className="flex flex-1 flex-col items-center lg:items-start">
+
       {/* Badge */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="flex items-center gap-2 px-4 py-1.5 mt-24 rounded-full bg-white/70 backdrop-blur-sm border border-white/40 shadow-sm z-2"
+        className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 z-2"
       >
         <span className="relative flex size-3">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
-          <span className="relative inline-flex size-2 rounded-full bg-green-600"></span>
+          <span className="absolute inline-flex h-full w-full rounded-full bg-[#8DA36B] opacity-75 animate-ping"></span>
+          <span className="relative inline-flex size-2 rounded-full bg-[#8DA36B]"></span>
         </span>
-        <p className="text-sm text-black/60">Smarter project tracking for modern teams</p>
+        <p className="text-sm text-slate-300">Smarter project tracking for modern teams</p>
       </motion.div>
 
       {/*  Heading */}
@@ -173,8 +176,8 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
   initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
   transition={{ duration: 1, ease: "easeOut" }}
-  className="text-4xl md:text-[66px]/[1.1] text-center max-w-3xl mt-8 font-semibold z-2
-  bg-linear-to-r from-gray-900 via-violet-600 to-gray-900
+  className="text-4xl md:text-[58px]/[1.1] text-center lg:text-left max-w-3xl mt-8 font-semibold z-2
+  bg-linear-to-r from-[#FAF7F2] via-[#E0825B] to-[#FAF7F2]
   bg-size-[200%_100%] bg-clip-text text-transparent
   animate-gradient"
 >
@@ -211,7 +214,7 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.6 }}
-        className="text-sm text-gray-600 text-center max-w-xl mt-4 z-2"
+        className="text-sm md:text-base text-slate-400 text-center lg:text-left max-w-xl mt-5 z-2"
       >
         IssueFlow is an AI-integrated project management platform that helps teams plan work, track progress, and deliver efficiently.
       </motion.p>
@@ -223,17 +226,26 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
         transition={{ delay: 0.4 }}
         className='flex gap-3 mt-10 z-2'
       >
-        <Link to="/register" className="bg-violet-600 hover:bg-violet-700 text-white text-sm px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95">
+        <Link to="/register" className="bg-linear-to-r from-[#E0825B] to-[#C4552F] text-white text-sm font-medium px-6 py-3 rounded-lg shadow-lg shadow-[#C4552F]/30 transition-all duration-200 hover:scale-105 active:scale-95">
           Get Started Now
         </Link>
 
-        <Link to="/" className="bg-white hover:bg-violet-50 border border-violet-400 text-gray-600 text-sm px-5 py-3 rounded-lg transition-all duration-200 hover:scale-105">
+        <button onClick={scrollToFeatures} className="bg-white/5 hover:bg-white/10 border border-white/15 text-slate-200 text-sm px-5 py-3 rounded-lg transition-all duration-200 hover:scale-105">
           View Features
-        </Link>
+        </button>
       </motion.div>
 
-      {/* Divider */}
-      <div className='w-full max-w-3xl h-0.5 mt-10 bg-linear-to-r from-transparent via-violet-500 to-transparent z-2'></div>
+      </div>
+
+      {/* Right side: animated 2D kanban board */}
+      <div className="w-full flex-1 flex justify-center lg:justify-end">
+        <HeroBoard />
+      </div>
+
+      </div>
+
+      {/* fade the bottom edge so the glows do not stop in a hard line */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-1 h-32 bg-linear-to-b from-transparent to-[#161412]"></div>
 
     </section>
   )
