@@ -14,8 +14,8 @@ const Hero = ({scrollToFeatures}) => {
 
       {/* Floating glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-96 h-96 bg-[#C4552F]/25 rounded-full blur-3xl top-20 -left-10 animate-floatSlow"></div>
-        <div className="absolute w-96 h-96 bg-[#A37624]/20 rounded-full blur-3xl bottom-0 -right-10 animate-floatSlow2"></div>
+        <div className="absolute w-[34rem] h-[34rem] bg-[radial-gradient(circle,rgba(196,85,47,0.32),transparent_68%)] top-8 -left-24 animate-floatSlow"></div>
+        <div className="absolute w-[34rem] h-[34rem] bg-[radial-gradient(circle,rgba(163,118,36,0.26),transparent_68%)] -bottom-10 -right-24 animate-floatSlow2"></div>
       </div>
 
 

@@ -141,7 +141,7 @@ function ShapeField({ reduced }) {
       const rect = section.getBoundingClientRect()
       width = rect.width
       height = rect.height
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
       canvas.width = Math.round(width * dpr)
       canvas.height = Math.round(height * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)

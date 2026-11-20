@@ -26,6 +26,8 @@ const DemoVideo = () => {
   const [flash, setFlash] = useState(null); // the "+5s" / "-5s" bubble
 
   const isInView = useInView(sectionRef, { amount: 0.5 });
+  // start fetching the video only when the section is about one screen away (it is 8 MB: no need on first paint)
+  const isNear = useInView(sectionRef, { margin: "0px 0px 100% 0px", once: true });
 
   // play when the player is on screen, pause when the user scrolls away
   useEffect(() => {
@@ -147,7 +149,7 @@ const DemoVideo = () => {
               className="h-full w-full cursor-pointer object-contain"
               muted
               playsInline
-              preload="metadata"
+              preload={isNear ? "metadata" : "none"}
             >
               <source src="/demo.mp4" type="video/mp4" />
             </video>

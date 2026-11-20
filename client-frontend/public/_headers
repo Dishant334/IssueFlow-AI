@@ -1,0 +1,10 @@
+# Netlify cache rules (Vercel reads vercel.json instead).
+# Files in /assets have a hash in their name, so they never change under the same name.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+/screens/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/demo.mp4
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400

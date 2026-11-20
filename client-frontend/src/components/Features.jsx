@@ -58,6 +58,12 @@ const featuresData = [
 const Features = () => {
   // on desktop one panel is open (wide) and the rest are squeezed, hover changes which one
   const [active, setActive] = useState(0)
+  // the cards that have been opened at least once: only their screenshot is downloaded (the rest are not needed yet)
+  const [seen, setSeen] = useState(() => new Set([0]))
+  const open = (index) => {
+    setActive(index)
+    setSeen((old) => (old.has(index) ? old : new Set(old).add(index)))
+  }
 
   // moves the spotlight inside the panel to follow the mouse
   const handleMove = (e) => {
@@ -102,8 +108,8 @@ const Features = () => {
             <div
               key={feature.title}
               tabIndex={0}
-              onMouseEnter={() => setActive(index)}
-              onFocus={() => setActive(index)}
+              onMouseEnter={() => open(index)}
+              onFocus={() => open(index)}
               onMouseMove={handleMove}
               style={{ '--c': feature.color }}
               className={`group relative min-h-44 cursor-pointer overflow-hidden rounded-2xl border bg-[#1F1C19] outline-none
@@ -162,12 +168,16 @@ const Features = () => {
 
                 {/* full screenshot in a window frame */}
                 <div className="overflow-hidden rounded-xl border border-white/10 shadow-2xl shadow-black/60 lg:min-w-0 lg:flex-1">
-                  <img
-                    src={feature.image}
-                    alt={feature.title + ' screenshot'}
-                    loading="lazy"
-                    className="aspect-16/10 w-full object-cover"
-                  />
+                  {seen.has(index) ? (
+                    <img
+                      src={feature.image}
+                      alt={feature.title + ' screenshot'}
+                      decoding="async"
+                      className="aspect-16/10 w-full object-cover"
+                    />
+                  ) : (
+                    <div className="aspect-16/10 w-full bg-[#161412]"></div>
+                  )}
                 </div>
               </div>
             </div>
