@@ -1,0 +1,2 @@
+# Netlify: every path that is not a real file serves the app, so links from emails (/invite/..., /reset-password/...) and page refreshes work
+/*    /index.html   200
