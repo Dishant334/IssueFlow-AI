@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getWorkspaces } from '../apiHelper/workspace'
 import Loading from '../components/Loading'
 import Banner from '../components/Banner'
+import Header from '../components/Header'
 import Hero from '../components/Hero'
 import Features from '../components/Features'
 import CTA from '../components/CTA'
@@ -49,10 +50,11 @@ const Home = () => {
   return (
     <div>
       {/* the page sits above the footer (z-10), so the footer is uncovered as the CTA scrolls away */}
-      <main className="relative z-10">
+      <main id="main" className="relative z-10">
+        <Header/>
         <Hero
          scrollToFeatures={() => featuresRef.current?.scrollIntoView({ behavior: "smooth" })}
-          scrollToContact={() => document.getElementById('contact')?.scrollIntoView({ behavior: "smooth" })}/>
+/>
 
         <div ref={featuresRef}>
           <Features/>

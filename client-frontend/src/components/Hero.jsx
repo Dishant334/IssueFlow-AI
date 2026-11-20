@@ -1,28 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import Logo from './Logo'
 import HeroBoard from './HeroBoard'
 
-const navLink = "relative text-sm text-slate-300 hover:text-white transition after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-[#E0825B] after:transition-all after:duration-300 hover:after:w-full"
-
-const Hero = ({scrollToFeatures,scrollToContact}) => {
-  const [mobileOpen, setMobileOpen] = React.useState(false)
-  const [scrolled,setScrolled]=useState(false)
-
- useEffect(() => {
-  const handleScroll = () => {
-    if (window.scrollY > 120 && !scrolled) {
-      setScrolled(true);
-    } else if (window.scrollY < 60 && scrolled) {
-      setScrolled(false);
-    }
-  };
-
-  window.addEventListener("scroll", handleScroll);
-  return () => window.removeEventListener("scroll", handleScroll);
-}, [scrolled]);
-
+const Hero = ({scrollToFeatures}) => {
   return (
     // same warm charcoal + terracotta colours as the dashboard (see .theme-ember in index.css)
     <section className='relative flex flex-col items-center overflow-hidden bg-[#161412] px-4 py-4 pt-28 pb-16'>
@@ -37,120 +18,7 @@ const Hero = ({scrollToFeatures,scrollToContact}) => {
         <div className="absolute w-96 h-96 bg-[#A37624]/20 rounded-full blur-3xl bottom-0 -right-10 animate-floatSlow2"></div>
       </div>
 
-<motion.nav
-  animate={{
-    width: scrolled ? "88%" : "100%",
-    top: scrolled ? 16 : 0,
-    left: scrolled ? "50%" : "0%",
-    borderRadius: scrolled ? 999 : 0,
-    translateX: scrolled ? "-50%" : "0%"
-  }}
-  transition={{
-    type: "spring",
-    stiffness: 70,
-    damping: 18
-  }}
-  className={`fixed z-50 flex items-center justify-between backdrop-blur-xl
-  ${
-    scrolled
-      ? "bg-[#1F1C19]/80 border border-white/10 shadow-lg shadow-black/30 px-6 py-2.5"
-      : "bg-transparent border-b border-white/10 px-4 md:px-10 py-4"
-  }`}
->
-  {/* Logo */}
-  {/* already on the home page, so the link does nothing: scroll to the top instead */}
-  <Link
-    to="/"
-    onClick={(e) => {
-      e.preventDefault()
-      window.scrollTo({ top: 0, behavior: "smooth" })
-    }}
-    aria-label="IssueFlow, back to top"
-  >
-    <Logo size={scrolled ? 34 : 40} />
-  </Link>
 
-  {/* Nav Links (centered) */}
-  <div
-    className={`max-md:absolute max-md:top-0 max-md:left-0 max-md:h-screen
-    max-md:bg-[#161412]/95 max-md:backdrop-blur-xl
-    max-md:flex-col max-md:justify-center
-    max-md:overflow-hidden max-md:transition-[width]
-    max-md:duration-300 flex items-center justify-center gap-8 md:gap-10 flex-1
-    ${mobileOpen ? "max-md:w-full" : "max-md:w-0"}`}
-  >
-
-  {/* Close Button */}
-  <button
-    onClick={() => setMobileOpen(false)}
-    className="absolute top-6 right-6 md:hidden text-3xl text-slate-300"
-  >
-    ✕
-  </button>
-    <button
-      onClick={() => {
-        setMobileOpen(false);
-        scrollToFeatures();
-      }}
-      className={navLink}
-    >
-      Features
-    </button>
-
-    <button
-      onClick={() => {
-        setMobileOpen(false);
-        scrollToContact();
-      }}
-      className={navLink}
-    >
-      Contact Us
-    </button>
-
-    <Link
-      to="/login"
-      onClick={() => setMobileOpen(false)}
-      className={`${navLink} md:hidden`}
-    >
-      Login
-    </Link>
-
-    <Link
-      to="/register"
-      onClick={() => setMobileOpen(false)}
-      className={`${navLink} md:hidden`}
-    >
-      Sign Up
-    </Link>
-  </div>
-
-  {/* Auth buttons */}
-  <div className="flex items-center gap-3">
-    <Link
-      to="/login"
-      className="hidden md:inline-block text-sm text-slate-300 hover:text-white px-3 py-2 transition"
-    >
-      Login
-    </Link>
-
-    <Link
-      to="/register"
-      className={`hidden md:inline-block bg-linear-to-r from-[#E0825B] to-[#C4552F]
-      text-white rounded-full text-sm font-medium shadow-lg shadow-[#C4552F]/30 transition-all duration-300
-      hover:scale-105 hover:shadow-[#C4552F]/50 active:scale-95
-      ${scrolled ? "px-5 py-2" : "px-6 py-2.5"}`}
-    >
-      Get Started
-    </Link>
-
-    <button
-      onClick={() => setMobileOpen(true)}
-      className="md:hidden text-slate-200 text-xl p-2"
-    >
-      ☰
-    </button>
-  </div>
-</motion.nav>
 
       <div className="relative z-2 flex w-full max-w-6xl flex-col items-center gap-6 mt-20 lg:flex-row lg:gap-4">
 
