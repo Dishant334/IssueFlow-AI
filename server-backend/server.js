@@ -17,6 +17,7 @@ import Invitation from './models/Invitation.js'
 import RateLimit from './models/RateLimit.js'
 import { generalLimit } from './authMiddleWare/rateLimit.js'
 import { trustProxyHops } from './config/rateLimits.js'
+import { allowedOrigins } from './config/origins.js'
 
 // the server cannot work without these, so it stops right at the start with a clear message
 const required=['MONGO_URI','JWT_SECRET','JWT_REFRESH_SECRET']
@@ -39,7 +40,7 @@ app.set('trust proxy',trustProxyHops)
 
 app.use(express.json()) //to parse data to JSON format
 // the browser may read these headers of a rate limit answer (it needs this for another origin, like the Vercel site)
-app.use(cors({exposedHeaders:['Retry-After','RateLimit-Limit','RateLimit-Remaining','RateLimit-Reset']}))
+app.use(cors({origin:allowedOrigins,exposedHeaders:['Retry-After','RateLimit-Limit','RateLimit-Remaining','RateLimit-Reset']}))
 app.use('/api',generalLimit)
 app.use('/api/users',userRouter)
 app.use('/api',workspaceRouter)

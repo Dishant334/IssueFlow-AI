@@ -6,6 +6,7 @@ import Workspace from "../models/Workspace.js";
 import Project from "../models/Projects.js";
 import { limiters } from "./rateLimiters.js";
 import { socketIp } from "../utils/clientIp.js";
+import { allowedOrigins } from "../config/origins.js";
 
 let io;  //initializing a instance of Socket.io
 
@@ -29,7 +30,7 @@ const canOpenTask = async (userId, taskId) => {
 export const initSocket=(server)=>{
 io = new Server(server,{
     cors:{
-        origin: process.env.HOST,
+        origin: allowedOrigins,
         methods:["GET","POST"]
     }
 })

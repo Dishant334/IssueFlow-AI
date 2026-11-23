@@ -17,6 +17,28 @@ const transporter = nodemailer.createTransport({
 });
 
 
+// Render's free tier blocks SMTP, so on the server mails go out over HTTPS through Brevo (BREVO_API_KEY).
+// Without that key the Gmail SMTP transporter above is used (fine for local development).
+const sendMail = async ({ to, subject, text, html }) => {
+  if (!process.env.BREVO_API_KEY) {
+    return transporter.sendMail({ from: `"IssueFlow AI Team" <${process.env.EMAIL_USER}>`, to, subject, text, html });
+  }
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json", accept: "application/json" },
+    body: JSON.stringify({
+      sender: { name: "IssueFlow AI Team", email: process.env.EMAIL_USER },
+      to: [{ email: to }],
+      subject,
+      textContent: text,
+      htmlContent: html,
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!res.ok) throw Object.assign(new Error(`Brevo ${res.status}: ${(await res.text()).slice(0, 200)}`), { code: "BREVO" });
+  return res.json();
+};
+
 export const sendInviteEmail = async ({
   to,
   workspaceName,
@@ -32,14 +54,13 @@ export const sendInviteEmail = async ({
     });
 
     const mailOptions = {
-      from: `"IssueFlow AI Team" <${process.env.EMAIL_USER}>`,
       to,
       subject: `${invitedByName} invited you to ${workspaceName} on IssueFlow`,
       text: generateInviteText({ workspaceName, inviteLink, invitedByName }),
       html,
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendMail(mailOptions);
 
     return info;
   } catch (error) {
@@ -53,14 +74,13 @@ export const sendResetPasswordEmail = async ({ to, name, resetLink }) => {
   await consumeMailQuota();
   try {
     const mailOptions = {
-      from: `"IssueFlow AI Team" <${process.env.EMAIL_USER}>`,
       to,
       subject: "Reset your IssueFlow password",
       text: generateResetPasswordText({ name, resetLink }),
       html: generateResetPasswordTemplate({ name, resetLink }),
     };
 
-    return await transporter.sendMail(mailOptions);
+    return await sendMail(mailOptions);
   } catch (error) {
     console.error("Reset password email failed:", error.code, error.responseCode, error.message);
     throw new Error("Failed to send reset password email");

@@ -4,7 +4,7 @@ import Comment from "../models/Comments.js";
 import { Task } from "../models/Tasks.js";
 import Project from "../models/Projects.js";
 import Workspace from "../models/Workspace.js";
-import { ai, AI_MODEL } from "../services/aiServices.js";
+import { generateText } from "../services/aiServices.js";
 import { consumeAiQuota, getAiQuota, markAiExhausted, refundAiQuota, secondsUntilReset } from "../services/aiQuota.js";
 import { tooMany } from "../authMiddleWare/rateLimit.js";
 import { get, set } from "../utils/cache.js";
@@ -14,9 +14,6 @@ const aiFailed = (res, err) => {
   console.error("AI ERROR:", err?.message);
   return res.status(502).json({ message: "The AI service is not available right now. Please try again in a moment." });
 };
-
-const getText = (response) =>
-  response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
 // Asks Gemini. The free key has a small daily limit for the whole app (see config/rateLimits.js), so every question
 // takes a point from the user's allowance and from the shared pool first.
@@ -44,8 +41,7 @@ const askGemini = async (req, res, prompt) => {
   }
 
   try {
-    const response = await ai.models.generateContent({ model: AI_MODEL, contents: prompt });
-    const text = getText(response);
+    const text = await generateText(prompt);
     if (text) set(cacheKey, text, 24 * 60 * 60);   // only a real answer is kept (not an error, not an empty answer)
     return text;
   } catch (err) {
