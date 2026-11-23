@@ -9,7 +9,7 @@ export const ai = new GoogleGenAI({
 export const AI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
 // Groq is the free backup: it is only asked when Gemini fails (busy, over its limit, or a bad key).
-export const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+export const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 
 const geminiText = (response) =>
   response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
