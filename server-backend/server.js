@@ -31,6 +31,11 @@ const optional=['CLIENT_URL','HOST','EMAIL_USER','GOOGLE_APP_PASSWORD','GEMINI_A
 const notSet=optional.filter((name)=>!process.env[name])
 if(notSet.length>0) console.warn(`Environment variables not set (some features will not work): ${notSet.join(', ')}`)
 
+// shows which way mails are sent: Mailjet (https, works on Render) or Gmail smtp (blocked on Render free)
+console.log(process.env.MAILJET_API_KEY && process.env.MAILJET_SECRET_KEY
+    ? "Mail: using Mailjet"
+    : `Mail: using Gmail SMTP (Mailjet keys missing: ${['MAILJET_API_KEY','MAILJET_SECRET_KEY'].filter((n)=>!process.env[n]).join(', ')})`)
+
 const app=express()
 const port=process.env.PORT || 7001
 
